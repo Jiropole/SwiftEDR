@@ -13,6 +13,13 @@ SwiftEDR simplifies the somewhat intricate details related to using extended and
 * EDR (Extended Dynamic Range) – extended color range with higher precision color math, bloom and tone mapping support.
 * HDR (Extended Dynamic Range) – extended color range with higher precision color math, bloom and tone mapping support, and special display handling on compatible hardware.
 
+Here are some examples of SDR, EDR and HDR, onthing that actual display results cannot be captured with screenshots.
+
+<img width="553" height="598" alt="swiftedr-sdr-mode" src="https://github.com/user-attachments/assets/45e22ca4-ae32-4ea8-8660-11e92041de86" />
+<img width="553" height="598" alt="swiftedr-edr-mode" src="https://github.com/user-attachments/assets/fe98b027-3e02-44e3-ac02-0fb767d358ae" />
+<img width="553" height="598" alt="swiftedr-hdr-mode" src="https://github.com/user-attachments/assets/8656e5ff-d3d9-4750-8757-769df3f158ca" />
+
+
 ### Example App
 Take a peek at what kind of visual results you can expect! We encourage you to open the SwiftEDRExample app and experience the interactive demo. After all, a picture is worth a thousand words when it comes to visual gravy.
 
