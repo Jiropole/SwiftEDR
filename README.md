@@ -36,7 +36,7 @@ There are two ways to leverage this package:
 
 ### EDRModifier View Modifier
 
-This view modifier allows you to apply EDR behaviors (defined by a Picture) to a specific view.
+This view modifier allows you to apply EDR behaviors (defined by a Profile) to a specific view.
 
 ```swift
 AnimatedHeroView()
@@ -70,13 +70,13 @@ TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { time
  
 ## Key Concepts
 
-### Picture Model 
+### Profile Model 
 
-The `Picture` model is of particular significance. Its role includes:
+The `Profile` model is of particular significance. Its role includes:
 * Configuring the primary EDR mode along with related behaviors and effects.
 * Vending colors and other values that are calibrated for the selected EDR mode. 
 
-Use `Picture.Defaults` to quickly select a preset, or customize your own effects and display attributes. Note that little time has yet been spent on tuning Defaults. It may be common to tune the Bloom effect, in particular, to the specific content and desired aesthetics.
+Use `Profile.Defaults` to quickly select a preset, or customize your own effects and display attributes. Note that little time has yet been spent on tuning Defaults. It may be common to tune the Bloom effect, in particular, to the specific content and desired aesthetics.
 
 ### Bloom Effect
 Bloom is a cinematic effect that models bright areas of the scene as though they were light emissive. It is most useful for HDR, but SwiftEDR supports the effect in any EDR mode.
