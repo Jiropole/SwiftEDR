@@ -83,11 +83,11 @@ private extension ContentView {
         EDRCanvas(picture: picture,
                   isOpaque: true,
                   options: options,
-                  payload: elapsed) { context, size, time in
+                  payload: elapsed) { context, size, elapsed in
             TestRenderer(ctx: context,
                          size: size,
                          picture: picture,
-                         time: time,
+                         elapsed: elapsed,
                          colorAlpha: config.colorAlpha,
                          objectCount: Int(config.objectCount),
                          objectSize: config.objectSize)
@@ -100,7 +100,7 @@ private extension ContentView {
             TestRenderer(ctx: context,
                          size: size,
                          picture: .Defaults.sdr,
-                         time: elapsed,
+                         elapsed: elapsed,
                          colorAlpha: config.colorAlpha,
                          objectCount: Int(config.objectCount),
                          objectSize: config.objectSize)
