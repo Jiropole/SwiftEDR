@@ -10,24 +10,24 @@ import SwiftUI
 /// Applies EDR (extended dynamic range) color precision and display to the view content.
 
 public struct EDRModifier: ViewModifier {
-    /// EDR picture configuration.
-    public let picture: Picture
+    /// EDR profile configuration.
+    public let profile: Profile
 
     /// Diagnostic options.
     public var options: Diagnostics = []
 
-    public init(picture: Picture, options: Diagnostics) {
-        self.picture = picture
+    public init(profile: Profile, options: Diagnostics) {
+        self.profile = profile
         self.options = options
     }
 
     public func body(content: Content) -> some View {
         Group {
-            switch picture.mode {
+            switch profile.mode {
             case .hdr:
                 // Expand the allowed dynamic range for HDR.
                 toneMapped(content: content)
-                    .allowedDynamicRange(picture.relativeDynamicRange)
+                    .allowedDynamicRange(profile.relativeDynamicRange)
             default:
                 // Other modes can still be tone mapped.
                 toneMapped(content: content)
@@ -37,7 +37,7 @@ public struct EDRModifier: ViewModifier {
 
     public func toneMapped(content: Content) -> some View {
         content
-            .modifier(BloomModifier(picture: picture, options: options))
+            .modifier(BloomModifier(profile: profile, options: options))
             .layerEffect(
                 // Apply tone mapping
                 ShaderLibrary.bundle(Bundle.module).cinematicToneMap(),

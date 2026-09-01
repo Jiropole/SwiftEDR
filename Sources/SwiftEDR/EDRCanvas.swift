@@ -14,20 +14,20 @@ public struct EDRCanvas<Payload: Any>: View {
                                      _ size: CGSize,
                                      _ payload: Payload) -> Void
 
-    private let picture: Picture
+    private let profile: Profile
     private let isOpaque: Bool
     private let rendersAsynchronously: Bool
     private let options: Diagnostics
     private let payload: Payload
     private let onDraw: DrawFunction
 
-    public init(picture: Picture,
+    public init(profile: Profile,
                 isOpaque: Bool = false,
                 rendersAsynchronously: Bool = false,
                 options: Diagnostics = [],
                 payload: Payload,
                 onDraw: @escaping DrawFunction) {
-        self.picture = picture
+        self.profile = profile
         self.isOpaque = isOpaque
         self.rendersAsynchronously = rendersAsynchronously
         self.options = options
@@ -39,13 +39,13 @@ public struct EDRCanvas<Payload: Any>: View {
         Canvas(opaque: isOpaque, colorMode: canvasColorMode, rendersAsynchronously: rendersAsynchronously) { context, size in
             onDraw(context, size, payload)
         }
-        .modifier(EDRModifier(picture: picture, options: options))
+        .modifier(EDRModifier(profile: profile, options: options))
     }
 }
 
 private extension EDRCanvas {
     var canvasColorMode: ColorRenderingMode {
-        switch picture.mode {
+        switch profile.mode {
         case .sdr:
             return .nonLinear
         default:

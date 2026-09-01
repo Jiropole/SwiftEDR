@@ -11,7 +11,7 @@ import SwiftEDR
 struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass: UserInterfaceSizeClass?
 
-    @State private var picture: Picture = .Defaults.edrBloom
+    @State private var profile: Profile = .Defaults.edrBloom
     @State private var config: Config = .default
     @State private var isAnimating: Bool = true
     @State private var isShowingHero: Bool = false
@@ -23,11 +23,11 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Picker("Dynamic Range", selection: .init(get: { picture.mode },
-                                                     set: { picture.mode = $0 })) {
-                Text("SDR").tag(Picture.Mode.sdr)
-                Text("EDR").tag(Picture.Mode.edr)
-                Text("HDR").tag(Picture.Mode.hdr)
+            Picker("Dynamic Range", selection: .init(get: { profile.mode },
+                                                     set: { profile.mode = $0 })) {
+                Text("SDR").tag(Profile.Mode.sdr)
+                Text("EDR").tag(Profile.Mode.edr)
+                Text("HDR").tag(Profile.Mode.hdr)
             }
             .pickerStyle(.segmented)
 
@@ -40,7 +40,7 @@ struct ContentView: View {
                             .clipped()
                     }
 
-                    edrCanvasViewWithPicture(picture, elapsed: elapsed)
+                    edrCanvasViewWithPicture(profile, elapsed: elapsed)
                         .background(Color(white: config.backgroundLevel))
                         .clipped()
                 }
@@ -79,14 +79,14 @@ struct ContentView: View {
 // MARK: Canvas Examples
 
 private extension ContentView {
-    func edrCanvasViewWithPicture(_ picture: Picture, elapsed: TimeInterval) -> some View {
-        EDRCanvas(picture: picture,
+    func edrCanvasViewWithPicture(_ profile: Profile, elapsed: TimeInterval) -> some View {
+        EDRCanvas(profile: profile,
                   isOpaque: true,
                   options: options,
                   payload: elapsed) { context, size, elapsed in
             TestRenderer(ctx: context,
                          size: size,
-                         picture: picture,
+                         profile: profile,
                          elapsed: elapsed,
                          colorAlpha: config.colorAlpha,
                          objectCount: Int(config.objectCount),
@@ -99,7 +99,7 @@ private extension ContentView {
         Canvas { context, size in
             TestRenderer(ctx: context,
                          size: size,
-                         picture: .Defaults.sdr,
+                         profile: .Defaults.sdr,
                          elapsed: elapsed,
                          colorAlpha: config.colorAlpha,
                          objectCount: Int(config.objectCount),
@@ -117,7 +117,7 @@ private extension ContentView {
             .aspectRatio(1, contentMode: .fit)
             .frame(maxWidth: 500)
             .fontWeight(.bold)
-            .foregroundStyle(picture.hsvColor([
+            .foregroundStyle(profile.hsvColor([
                 fmod(elapsed / 4 + offset / 8, 1), // hue
                 0.7 + 0.5 * sin(stepElapsed * 2 * .pi / 11), // saturation
                 1.25, // value/brightness
@@ -136,7 +136,7 @@ private extension ContentView {
 
             Text("Applying EDRModifier to an arbitrary view")
                 .font(.headline.bold().italic())
-                .foregroundStyle(picture.hsvColor([
+                .foregroundStyle(profile.hsvColor([
                     fmod(elapsed / 8, 1), // hue
                     0.7 + 0.5 * sin(elapsed * 2 * .pi / 11), // saturation
                     1.2, // value/brightness
@@ -144,7 +144,7 @@ private extension ContentView {
                 ]))
         }
         .padding(24)
-        .modifier(EDRModifier(picture: picture, options: options))
+        .modifier(EDRModifier(profile: profile, options: options))
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 32))
         .padding(8)
@@ -201,13 +201,13 @@ private extension ContentView {
                         .foregroundStyle(isShowingHero ? Color.accentColor : Color.white)
                 }
                 Button {
-                    switch picture.mode {
+                    switch profile.mode {
                     case .sdr:
-                        picture = .Defaults.sdrBloom
+                        profile = .Defaults.sdrBloom
                     case .edr:
-                        picture = .Defaults.edrBloom
+                        profile = .Defaults.edrBloom
                     case .hdr:
-                        picture = .Defaults.hdrBloom
+                        profile = .Defaults.hdrBloom
                     }
                     config = .init()
                 } label: {
@@ -268,37 +268,37 @@ private extension ContentView {
 
     var bloomRadiusControl: some View {
         attributeSlider {
-            Text("Bloom Radius: \(formatter.string(from: picture.bloom.radius as NSNumber)!)")
-            Slider(value: $picture.bloom.radius, in: 0...0.25)
+            Text("Bloom Radius: \(formatter.string(from: profile.bloom.radius as NSNumber)!)")
+            Slider(value: $profile.bloom.radius, in: 0...0.25)
         } reset: {
-            picture.bloom.radius = 0.05
+            profile.bloom.radius = 0.05
         }
     }
 
     var bloomIntensityControl: some View {
         attributeSlider {
-            Text("Bloom Intensity: \(formatter.string(from: picture.bloom.intensity as NSNumber)!)")
-            Slider(value: $picture.bloom.intensity, in: 0...10)
+            Text("Bloom Intensity: \(formatter.string(from: profile.bloom.intensity as NSNumber)!)")
+            Slider(value: $profile.bloom.intensity, in: 0...10)
         } reset: {
-            picture.bloom.intensity = 1.0
+            profile.bloom.intensity = 1.0
         }
     }
 
     var bloomThresholdControl: some View {
         attributeSlider {
-            Text("Bloom Thresh: \(formatter.string(from: picture.bloom.threshold as NSNumber)!)")
-            Slider(value: $picture.bloom.threshold, in: 0.1...2)
+            Text("Bloom Thresh: \(formatter.string(from: profile.bloom.threshold as NSNumber)!)")
+            Slider(value: $profile.bloom.threshold, in: 0.1...2)
         } reset: {
-            picture.bloom.threshold = picture.mode == .hdr ? 1 : 0.9
+            profile.bloom.threshold = profile.mode == .hdr ? 1 : 0.9
         }
     }
 
     var bloomKneeWidthControl: some View {
         attributeSlider {
-            Text("Bloom Knee: \(formatter.string(from: picture.bloom.kneeWidth as NSNumber)!)")
-            Slider(value: $picture.bloom.kneeWidth, in: 0.01...1)
+            Text("Bloom Knee: \(formatter.string(from: profile.bloom.kneeWidth as NSNumber)!)")
+            Slider(value: $profile.bloom.kneeWidth, in: 0.01...1)
         } reset: {
-            picture.bloom.kneeWidth = 0.9
+            profile.bloom.kneeWidth = 0.9
         }
     }
 

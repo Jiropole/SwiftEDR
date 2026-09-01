@@ -11,17 +11,17 @@ import SwiftEDR
 struct TestRenderer {
     let context: GraphicsContext
     let size: CGSize
-    let picture: Picture
+    let profile: Profile
     let elapsed: TimeInterval
     let colorAlpha: CGFloat
     let objectCount: Int
     let objectSize: CGFloat
 
-    init(ctx: GraphicsContext, size: CGSize, picture: Picture, elapsed: TimeInterval,
+    init(ctx: GraphicsContext, size: CGSize, profile: Profile, elapsed: TimeInterval,
          colorAlpha: CGFloat, objectCount: Int, objectSize: CGFloat = 50) {
         self.context = ctx
         self.size = size
-        self.picture = picture
+        self.profile = profile
         self.elapsed = elapsed
         self.colorAlpha = colorAlpha
         self.objectCount = objectCount
@@ -73,6 +73,6 @@ private extension TestRenderer {
                     colorAlpha]
         }
 
-        return picture.rgbColors(rawColors)
+        return profile.rgbColors(rawColors)
     }
 }

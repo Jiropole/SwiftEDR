@@ -1,5 +1,5 @@
 //
-//  SwiftEDRPicture.swift
+//  Picture.swift
 //  EDRCanvas
 //
 //  Created by Jesse Hemingway on 8/28/26.
@@ -8,8 +8,15 @@
 import Foundation
 import SwiftUI
 
+#if os(iOS) || os(visionOS)
+public typealias NativeColor = UIColor
+#elseif os(macOS)
+import AppKit
+public typealias NativeColor = NSColor
+#endif
+
 /// Defines a profile of a color model and customize
-public struct Picture: BaseModel {
+public struct Profile: BaseModel {
     /// Selects EDR mode.
     public var mode: Mode
 
@@ -28,7 +35,7 @@ public struct Picture: BaseModel {
 
 // MARK: Color Convenience
 
-extension Picture {
+extension Profile {
     /// Convenience function to get a color space appropriate color.
     public func rgbColor(_ components: [CGFloat]) -> Color {
         Self.rgbColor(components, space: mode.colorSpace)
@@ -65,7 +72,7 @@ extension Picture {
     public static func hsvColor(_ components: [CGFloat],
                                 space: CGColorSpace) -> Color {
         let (hue, sat, val, opa) = (components[0], components[1], components[2], components[3])
-        let p3UIColor = UIColor(hue: hue, saturation: sat, brightness: val, alpha: opa)
+        let p3UIColor = NativeColor(hue: hue, saturation: sat, brightness: val, alpha: opa)
         let cgColor = p3UIColor.cgColor
         guard let convertedColor = cgColor
             .converted(to: space, intent: .perceptual, options: nil) else {
@@ -82,7 +89,7 @@ extension Picture {
 
 // MARK: Submodels
 
-extension Picture {
+extension Profile {
     /// A set of EDR options selecting between different drawing bit depth, color range and tone mapping.
     public enum Mode: BaseModel {
         /// Standard color range and bit depth.
@@ -160,12 +167,12 @@ extension Picture {
     }
 
     public struct Defaults {
-        public static let sdr = Picture(mode: .sdr, bloom: .none)
-        public static let edr = Picture(mode: .edr, bloom: .none)
-        public static let hdr = Picture(mode: .hdr, bloom: .none)
-        public static let sdrBloom = Picture(mode: .sdr, bloom: .sdr)
-        public static let edrBloom = Picture(mode: .edr, bloom: .edr)
-        public static let hdrBloom = Picture(mode: .hdr, bloom: .hdr)
+        public static let sdr = Profile(mode: .sdr, bloom: .none)
+        public static let edr = Profile(mode: .edr, bloom: .none)
+        public static let hdr = Profile(mode: .hdr, bloom: .none)
+        public static let sdrBloom = Profile(mode: .sdr, bloom: .sdr)
+        public static let edrBloom = Profile(mode: .edr, bloom: .edr)
+        public static let hdrBloom = Profile(mode: .hdr, bloom: .hdr)
     }
 }
 

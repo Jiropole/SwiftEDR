@@ -1,11 +1,11 @@
 # SwiftEDR
 
-A clean, convenient and performant mini-framework to bring EDR (extended dynamic range) and HDR (high dynamic range) to any SwiftUI view.
+A clean, convenient and performant mini-framework to bring EDR (extended dynamic range) and HDR (high dynamic range) display to any SwiftUI view.
 
 
 ## Features
 
-SwiftEDR simplifies the somewhat intricate details related to using extended and high dynamic range bit depths and color spaces within SwiftUI. It also comes with a modest suite of common HDR accompaniments like Tone Mapping and Bloom, which may expand over time.
+SwiftEDR simplifies the somewhat intricate details related to using extended and high dynamic range bit depths and color spaces within SwiftUI. It also comes with a modest suite of common HDR accompaniments like Tone Mapping and Bloom.
 
 #### Supported Modes 
 
@@ -13,10 +13,10 @@ SwiftEDR simplifies the somewhat intricate details related to using extended and
 * EDR (Extended Dynamic Range) – extended color range with higher precision color math, bloom and tone mapping support.
 * HDR (Extended Dynamic Range) – extended color range with higher precision color math, bloom and tone mapping support, and special display handling on compatible hardware.
 
-#### Example App
-Take a peek at what kind of visual results you can expect! We encourage you to open the SwiftEDRExample app and experience the interactive demo. To access all controls, run on an iPad family device. 
+### Example App
+Take a peek at what kind of visual results you can expect! We encourage you to open the SwiftEDRExample app and experience the interactive demo. After all, a picture is worth a thousand words when it comes to visual gravy.
 
-After all, as a picture is worth a thousand words, with this kind of framework. The demo UI controls are a good way to study the visual behavior of the various picture modes and effects.
+The demo UI controls are a good way to study the visual behavior of the various profile modes and effects. To access all controls, run on an iPad family device.
 
 
 ## Quick Start
@@ -41,24 +41,26 @@ This view modifier allows you to apply EDR behaviors (defined by a Picture) to a
 ```swift
 AnimatedHeroView()
     // Make it cinematic
-    .modifier(EDRModifier(picture: .Defaults.hdrBloom))
+    .modifier(EDRModifier(profile: .Defaults.hdrBloom))
 ```
 
 ### EDRCanvas View
 
 This view is a more-or-less drop in replacement for SwiftUI Canvas. But why bother, you ask? Why not just use that sweet view modifier?
 
-Well, the reason is simply to ensure the Canvas is properly configured for the current EDR mode, which can be fiddlesome to get right, and a good thing to DRY out. Note that this example passes the picture into to its renderer, so it can acquire colors in the correct color space.
+Well, the reason is simply to ensure the Canvas is properly configured for the current EDR mode, which can be fiddlesome to get right, and a good thing to DRY out. 
+
+Note that this example passes the profile into to its renderer, so it can acquire colors in the correct color space, or modify its behavior based on the profile attributes.
 
 ```swift
 TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { timeline in
     let elapsed = timeline.date.timeIntervalSince(startDate)
-    EDRCanvas(picture: picture,
+    EDRCanvas(profile: profile,
               isOpaque: true,
               payload: elapsed) { context, size, elapsed in
         SuperAmazingRenderer(ctx: context,
                              size: size,
-                             picture: picture,
+                             profile: profile,
                              time: elapsed)
         .render()
     }
@@ -74,7 +76,7 @@ The `Picture` model is of particular significance. Its role includes:
 * Configuring the primary EDR mode along with related behaviors and effects.
 * Vending colors and other values that are calibrated for the selected EDR mode. 
 
-Use `Picture.Defaults` to quickly select a preset, or customize your own effects and display attributes. Note that little time has yet been spent on tuning Defaults, plus it may be best to tune the Bloom effect, in particular, to your specific content and aesthetics.
+Use `Picture.Defaults` to quickly select a preset, or customize your own effects and display attributes. Note that little time has yet been spent on tuning Defaults. It may be common to tune the Bloom effect, in particular, to the specific content and desired aesthetics.
 
 ### Bloom Effect
 Bloom is a cinematic effect that models bright areas of the scene as though they were light emissive. It is most useful for HDR, but SwiftEDR supports the effect in any EDR mode.
