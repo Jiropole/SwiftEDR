@@ -33,6 +33,7 @@ public struct EDRModifier: ViewModifier {
                 toneMapped(content: content)
             }
         }
+        .environment(\.profile, profile)
     }
 
     public func toneMapped(content: Content) -> some View {

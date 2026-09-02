@@ -43,7 +43,7 @@ There are two ways to leverage this package:
 
 ### EDRModifier View Modifier
 
-This view modifier allows you to apply EDR behaviors (defined by a Profile) to a specific view.
+This view modifier allows you to apply EDR behaviors, defined by a Profile, to a specific view.
 
 ```swift
 AnimatedHeroView()
@@ -53,27 +53,31 @@ AnimatedHeroView()
 
 ### EDRCanvas View
 
-This view is a more-or-less drop in replacement for SwiftUI Canvas. But why bother, you ask? Why not just use that sweet modifier?
+This view is a more-or-less drop in replacement for SwiftUI Canvas. But why bother, you ask? Why not just use that sweet modifier on a Canvas?
 
-Well, the reason is simply to ensure the Canvas is properly configured for the current EDR mode, which can be fiddlesome to get right, and a good thing to DRY out. 
-
-Note that this example passes the profile into to its renderer, so it can acquire colors in the correct color space, or modify its behavior based on the profile attributes.
+The reason is simply to ensure the Canvas is properly configured for the current EDR mode. A secondary reason is to ensure the current Profile is passed through to the drawing logic, so it can acquire colors in the correct color space, or modify its behavior based on the profile attributes.
 
 ```swift
 TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { timeline in
     let elapsed = timeline.date.timeIntervalSince(startDate)
-    EDRCanvas(profile: profile,
-              isOpaque: true,
-              payload: elapsed) { context, size, elapsed in
+    EDRCanvas(isOpaque: true,
+              payload: elapsed) { context, size, profile, elapsed in
         SuperAmazingRenderer(ctx: context,
                              size: size,
                              profile: profile,
                              time: elapsed)
         .render()
     }
+    .modifier(EDRModifier(profile: mySmoothBurstHDRProfile))    
 }
 ```
- 
+
+Note that you apply the view modifier in just the same way as for any other view. EDRCanvas picks up the current Profile through the environment in order to configure the SwiftUI Canvas. If necessary, any view in the child tree can access the profile set by an ancestor using the likes of:
+
+```swift
+@Environment(\.profile) private var profile
+``` 
+
  
 ## Key Concepts
 

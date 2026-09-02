@@ -176,3 +176,6 @@ extension Profile {
     }
 }
 
+extension EnvironmentValues {
+    @Entry public var profile: Profile?
+}
