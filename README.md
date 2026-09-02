@@ -15,9 +15,9 @@ SwiftEDR simplifies the somewhat intricate details related to using extended and
 
 Here are some examples of SDR, EDR and HDR, but note that actual display results cannot be captured with screenshots.
 
-<img width="185" height="200" alt="swiftedr-sdr-mode" src="https://github.com/user-attachments/assets/45e22ca4-ae32-4ea8-8660-11e92041de86" />
-<img width="185" height="200" alt="swiftedr-edr-mode" src="https://github.com/user-attachments/assets/fe98b027-3e02-44e3-ac02-0fb767d358ae" />
-<img width="185" height="200" alt="swiftedr-hdr-mode" src="https://github.com/user-attachments/assets/8656e5ff-d3d9-4750-8757-769df3f158ca" />
+<img width="250" height="270" alt="swiftedr-sdr-mode" src="https://github.com/user-attachments/assets/45e22ca4-ae32-4ea8-8660-11e92041de86" />
+<img width="250" height="270" alt="swiftedr-edr-mode" src="https://github.com/user-attachments/assets/fe98b027-3e02-44e3-ac02-0fb767d358ae" />
+<img width="250" height="270" alt="swiftedr-hdr-mode" src="https://github.com/user-attachments/assets/8656e5ff-d3d9-4750-8757-769df3f158ca" />
 
 
 ### Example App
@@ -55,17 +55,15 @@ AnimatedHeroView()
 
 This view is a more-or-less drop in replacement for SwiftUI Canvas. But why bother, you ask? Why not just use that sweet modifier on a Canvas?
 
-The reason is simply to ensure the Canvas is properly configured for the current EDR mode. A secondary reason is to ensure the current Profile is passed through to the drawing logic, so it can acquire colors in the correct color space, or modify its behavior based on the profile attributes.
+The main reason is simply to ensure the Canvas is properly configured for the current EDR mode. A secondary reason is to ensure the current Profile is passed through to the drawing logic, so it can acquire colors in the correct color space, or modify its behavior based on the profile attributes.
 
 ```swift
 TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { timeline in
-    let elapsed = timeline.date.timeIntervalSince(startDate)
-    EDRCanvas(isOpaque: true,
-              payload: elapsed) { context, size, profile, elapsed in
+    EDRCanvas(isOpaque: true) { context, size, profile in
         SuperAmazingRenderer(ctx: context,
                              size: size,
                              profile: profile,
-                             time: elapsed)
+                             elapsed: timeline.date.timeIntervalSince(startDate))
         .render()
     }
     .modifier(EDRModifier(profile: mySmoothBurstHDRProfile))    

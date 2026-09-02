@@ -80,8 +80,7 @@ struct ContentView: View {
 
 private extension ContentView {
     func edrCanvasViewWithPicture(_ profile: Profile, elapsed: TimeInterval) -> some View {
-        EDRCanvas(isOpaque: true,
-                  payload: elapsed) { context, size, profile, elapsed in
+        EDRCanvas(isOpaque: true) { context, size, profile in
             TestRenderer(ctx: context,
                          size: size,
                          profile: profile,
