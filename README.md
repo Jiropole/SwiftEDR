@@ -9,11 +9,11 @@ SwiftEDR simplifies the somewhat intricate details related to using extended and
 
 #### Supported Modes 
 
-* SDR (Standard Dynamic Range) – same color range as standard views, except you can apply a bloom effect. 
-* EDR (Extended Dynamic Range) – extended color range with higher precision color math, bloom and tone mapping support.
-* HDR (Extended Dynamic Range) – extended color range with higher precision color math, bloom and tone mapping support, and special display handling on compatible hardware.
+* SDR – Standard Dynamic Range. SDR mode results in the same color range as standard views, but with the advantage that the Bloom effect can be applied.
+* EDR – Extended Dynamic Range. EDR mode uses the standard color range, but with high precision color math when applied to Canvas views, as well as Bloom and Tone Mapping support.  
+* HDR – High Dynamic Range. HDR mode offers an extended color range, high precision color math for Canvas views, Bloom and Tone Mapping support, and special display handling on compatible hardware.
 
-Here are some examples of SDR, EDR and HDR, but note that actual display results cannot be captured with screenshots.
+Here are some examples of SDR, EDR and HDR. Note that screenshots cannot capture actual display results.
 
 <img width="250" height="270" alt="swiftedr-sdr-mode" src="https://github.com/user-attachments/assets/45e22ca4-ae32-4ea8-8660-11e92041de86" />
 <img width="250" height="270" alt="swiftedr-edr-mode" src="https://github.com/user-attachments/assets/fe98b027-3e02-44e3-ac02-0fb767d358ae" />
@@ -23,7 +23,7 @@ Here are some examples of SDR, EDR and HDR, but note that actual display results
 ### Example App
 Take a peek at what kind of visual results you can expect! We encourage you to open the SwiftEDRExample app and experience the interactive demo. After all, a picture is worth a thousand words when it comes to visual gravy.
 
-The demo UI controls are a good way to study the visual behavior of the various profile modes and effects. To access all controls, run on an iPad family device.
+The demo UI controls are a good way to study the visual behavior of the various profile modes and effects. To access all controls, run on an iPad or Mac device.
 
 
 ## Quick Start
@@ -87,6 +87,14 @@ The `Profile` model is of particular significance. Its role includes:
 
 Use `Profile.Defaults` to quickly select a preset, or customize your own effects and display attributes. Note that little time has yet been spent on tuning Defaults. It may be common to tune the Bloom effect, in particular, to the specific content and desired aesthetics.
 
+Profile is composed of the following attributes:
+* `mode`, one of:
+    * .sdr – Standard Dynamic Range (normal color range + bloom)
+    * .edr - Extended Dynamic Range (normal color range + more)
+    * .hdr – High Dynamic Range (extended color range + more)
+* `bloom`, described below.
+* `constrainedHDR` - Enable to constrain the maximum HDR brightness, for example to avoid overpowering adjacent UI or content elements. Default: true.
+
 ### Bloom Effect
 Bloom is a cinematic effect that models bright areas of the scene as though they were light emissive. It is most useful for HDR, but SwiftEDR supports the effect in any EDR mode.
 
@@ -105,7 +113,7 @@ The current tone mapping implementation is a minor variant on the Reinhard filte
 ## Color Design
 Here is a final thought with regards to color design and HDR mode.
 
-Color design for SDR and EDR are the same, as the output color ranges and gamma are identical. But colors are interpreted somewhat differently when displayed in HDR mode, which may affect color design decisions.
+Color design for SDR and EDR are very similar, as the output color ranges and gamma are identical. But colors are interpreted somewhat differently when displayed in HDR mode, which may affect color design decisions.
 
 HDR color design can take adantage of colors whose component values exceed the maximum SDR display brightness or darkness, and this expanded or "high" dynamic range allows for far deeper tonal contrast. 
 
@@ -113,9 +121,9 @@ Some rather crude examples to illustrate:
 * SDR red in RGB: (1, 0, 0). Or, mega-red in HDR: (2, 0, 0)
 * SDR white in HSV: (0, 0, 1). Or mega-white in HDR: (0, 0, 2) 
 
-This visual gravy comes with a price: greater tonal non-linearity, which can make balancing colors across your scene a different kind of challenge than for SDR. This can be further accentuated when significant Bloom is present.
+This visual gravy comes with a price: greater tonal non-linearity, which can make balancing colors across your scene a different kind of challenge than for SDR. There is no practical upper limit on color component values, because tone mapping squeezes this range back into expressible pixel values – a step which introduces significant nonlinearity in both color value and saturation. This non-linearity may be further accentuated when significant Bloom is present.
 
-Therefore, while this package can be used to quickly add a cinematic effect to tastefully chosen aspects of any SwiftUI application, best results may be achieved using content colors designed around the advantages and challenges of HDR.
+Therefore, while this package can be used to quickly add a cinematic effect to tastefully chosen elements of any SwiftUI application, best results may be achieved using content colors designed around the advantages and challenges of HDR.
 
  
  # License

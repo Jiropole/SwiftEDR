@@ -31,12 +31,13 @@ public struct HighlightsModifier: ViewModifier {
             // Restore original scale
             .scaleEffect(4.0)
             // Apply intensity to the blurred highlights.
-            .colorMultiply(Color(.displayP3,
-                                 red: profile.bloom.intensity,
-                                 green: profile.bloom.intensity,
-                                 blue: profile.bloom.intensity))
+            .colorMultiply(multiplierColor)
             .onGeometryChange(for: CGSize.self, of: \.size) { viewSize in
                 self.viewRadius = min(viewSize.width, viewSize.height)
             }
+    }
+
+    var multiplierColor: Color {
+        profile.rgbColor([profile.bloom.intensity, profile.bloom.intensity, profile.bloom.intensity, 1])
     }
 }

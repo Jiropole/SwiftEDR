@@ -13,12 +13,8 @@ public struct EDRModifier: ViewModifier {
     /// EDR profile configuration.
     public let profile: Profile
 
-    /// Diagnostic options.
-    public var options: Diagnostics = []
-
-    public init(profile: Profile, options: Diagnostics) {
+    public init(profile: Profile) {
         self.profile = profile
-        self.options = options
     }
 
     public func body(content: Content) -> some View {
@@ -38,7 +34,7 @@ public struct EDRModifier: ViewModifier {
 
     public func toneMapped(content: Content) -> some View {
         content
-            .modifier(BloomModifier(profile: profile, options: options))
+            .modifier(BloomModifier(profile: profile))
             .layerEffect(
                 // Apply tone mapping
                 ShaderLibrary.bundle(Bundle.module).cinematicToneMap(),

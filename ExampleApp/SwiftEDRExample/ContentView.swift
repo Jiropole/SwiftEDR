@@ -15,7 +15,6 @@ struct ContentView: View {
     @State private var config: Config = .default
     @State private var isAnimating: Bool = true
     @State private var isShowingHero: Bool = false
-    @State private var options: Diagnostics = []
     @State private var startDate: Date = Date()
     @State private var pauseDate: Date = Date()
 
@@ -30,6 +29,7 @@ struct ContentView: View {
                 Text("HDR").tag(Profile.Mode.hdr)
             }
             .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
 
             TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { timeline in
                 let elapsed = timeline.date.timeIntervalSince(startDate)
@@ -90,7 +90,7 @@ private extension ContentView {
                          objectSize: config.objectSize)
             .render()
         }
-                  .modifier(EDRModifier(profile: profile, options: options))
+                  .modifier(EDRModifier(profile: profile))
     }
 
     func swiftCanvasView(elapsed: TimeInterval) -> some View {
@@ -115,10 +115,16 @@ private extension ContentView {
             .aspectRatio(1, contentMode: .fit)
             .frame(maxWidth: 500)
             .fontWeight(.bold)
-            .foregroundStyle(profile.hsvColor([
-                fmod(elapsed / 4 + offset / 8, 1), // hue
-                0.7 + 0.5 * sin(stepElapsed * 2 * .pi / 11), // saturation
-                1.25, // value/brightness
+//            .foregroundStyle(profile.hsvColor([
+//                fmod(elapsed / 4 + offset / 8, 1), // hue
+//                0.6 + 0.4 * sin(stepElapsed * 2 * .pi / 11), // saturation
+//                1.25, // value/brightness
+//                1.0 // opacity
+//            ]))
+            .foregroundStyle(profile.rgbColor([
+                0.6 + 0.6 * sin(stepElapsed * 2 * .pi / 11), // saturation
+                0.6 + 0.6 * sin(stepElapsed * 2 * .pi / 10), // saturation
+                0.6 + 0.6 * sin(stepElapsed * 2 * .pi / 19), // saturation
                 1.0 // opacity
             ]))
             .rotationEffect(.radians(.pi / 8 * offset + .pi * offset))
@@ -142,7 +148,7 @@ private extension ContentView {
                 ]))
         }
         .padding(24)
-        .modifier(EDRModifier(profile: profile, options: options))
+        .modifier(EDRModifier(profile: profile))
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 32))
         .padding(8)
@@ -187,10 +193,10 @@ private extension ContentView {
         VStack(alignment: .trailing) {
             HStack(spacing: 12) {
                 Button {
-                    options.isBloomHighlightsOnly.toggle()
+                    profile.options.isBloomHighlightsOnly.toggle()
                 } label: {
                     Image(systemName: "ladybug.fill")
-                        .foregroundStyle(options.isBloomHighlightsOnly ? Color.accentColor : Color.white)
+                        .foregroundStyle(profile.options.isBloomHighlightsOnly ? Color.accentColor : Color.white)
                 }
                 Button {
                     isShowingHero.toggle()
@@ -330,7 +336,6 @@ private extension ContentView {
         static let `default` = Self()
     }
 }
-
 
 #Preview {
     ContentView()

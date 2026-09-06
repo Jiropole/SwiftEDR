@@ -23,13 +23,13 @@ public struct Profile: BaseModel {
     /// Controls optional bloom effect.
     public var bloom: Bloom
 
-    /// When enabled with HDR mode, tones down the HDR brightness relative to nearby SDR content.
-    public var constrainedHDR: Bool
+    /// Flags that control special or debugging behaviors.
+    public var options: Options
 
-    public init(mode: Mode, bloom: Bloom, constrainedHDR: Bool = true) {
+    public init(mode: Mode, bloom: Bloom, options: Options = .constrainedHDR) {
         self.mode = mode
         self.bloom = bloom
-        self.constrainedHDR = constrainedHDR
+        self.options = options
     }
 }
 
@@ -61,6 +61,12 @@ extension Profile {
     /// Create a color from RGBA components that is calibrated for the color space.
     public static func rgbColor(_ components: [CGFloat],
                                 space: CGColorSpace) -> Color {
+        // Original solution results in exactly the same colors regardless of color mode,
+        // I guess due to .perceptual. Not sure if this is the desired result
+        let (red, green, blue, opacity) = (components[0], components[1], components[2], components[3])
+        let p3Color = NativeColor(red: red, green: green, blue: blue, alpha: opacity)
+        let cgColor = p3Color.cgColor
+
         guard let cgColor = CGColor(colorSpace: space, components: components) else {
             return Color(.displayP3, red: components[0], green: components[1],
                          blue: components[2], opacity: components[3])
@@ -71,19 +77,53 @@ extension Profile {
     /// Create a color from HSVA components that is calibrated for the color space.
     public static func hsvColor(_ components: [CGFloat],
                                 space: CGColorSpace) -> Color {
-        let (hue, sat, val, opa) = (components[0], components[1], components[2], components[3])
-        let p3UIColor = NativeColor(hue: hue, saturation: sat, brightness: val, alpha: opa)
-        let cgColor = p3UIColor.cgColor
-        guard let convertedColor = cgColor
-            .converted(to: space, intent: .perceptual, options: nil) else {
-            return Color(cgColor: cgColor)
+        let (hue, sat, val, opacity) = (components[0], components[1], components[2], components[3])
+        let (red, green, blue) = hsvToRgb(hue: hue, sat: sat, val: val)
+        let p3Color = NativeColor(red: red, green: green, blue: blue, alpha: opacity)
+
+        let cgColor = p3Color.cgColor
+        guard let cgColor = CGColor(colorSpace: space, components: components) else {
+            return Color(.displayP3, red: components[0], green: components[1],
+                         blue: components[2], opacity: components[3])
         }
-        return Color(cgColor: convertedColor)
+        return Color(cgColor: cgColor)
+
+//        guard let convertedColor = cgColor
+//            .converted(to: space, intent: .perceptual, options: nil) else {
+//            return Color(cgColor: cgColor)
+//        }
+//        return Color(cgColor: convertedColor)
+    }
+
+    public static func hsvToRgb(hue: CGFloat, sat: CGFloat,
+                                val: CGFloat) -> (red: CGFloat, green: CGFloat, blue: CGFloat) {
+        let sat = min(sat, 1)   // Saturation cannot exceed 1.0
+        let i = hue * 6
+        let f = hue * 6 - i
+        let p = val * (1 - sat)
+        let q = val * (1 - f * sat)
+        let t = val * (1 - (1 - f) * sat)
+        let r, g, b: CGFloat
+        switch (fmod(i, 6)) {
+        case ..<1: r = val; g = t; b = p
+        case ..<2: r = q; g = val; b = p
+        case ..<3: r = p; g = val; b = t
+        case ..<4: r = p; g = q; b = val
+        case ..<5: r = t; g = p; b = val
+        default: r = val; g = p; b = q
+        }
+//        print("r: \(r), g: \(g), b: \(b)")
+        return (red: r, green: g, blue: b)
     }
 
     /// A mode-appropriate value for use with with `.allowedDynamicRange` SwiftUI modifier.
     public var relativeDynamicRange: Image.DynamicRange {
-        mode == .hdr ? (constrainedHDR ? .constrainedHigh : .high) : .standard
+        mode == .hdr ? (options.contains(.constrainedHDR) ? .constrainedHigh : .high) : .standard
+    }
+
+    /// A convenience function to get a modified (often simplified) version of the profile.
+    public func withBloom(_ bloom: Bloom, options: Options? = []) -> Profile {
+        Profile(mode: self.mode, bloom: bloom, options: options ?? self.options)
     }
 }
 
@@ -156,7 +196,7 @@ extension Profile {
         public static let hdr = Bloom(radius: 0.05, threshold: 1.0, kneeWidth: 0.2, intensity: 1.0)
         public static let edr = Bloom(radius: 0.05, threshold: 0.9, kneeWidth: 0.1, intensity: 1.0)
         public static let sdr = Bloom(radius: 0.05, threshold: 0.9, kneeWidth: 0.1, intensity: 1.0)
-        public static let none = Bloom(radius: 0.0, threshold: 1.0, kneeWidth: 0.0, intensity: 1.0)
+        public static let none = Bloom(radius: 0.0, threshold: 1.0, kneeWidth: 0.0, intensity: 0.0)
     }
 
     public struct ColorInfo {
@@ -164,6 +204,29 @@ extension Profile {
         let bitmapInfo: UInt32
         let bitsPerComponent: Int
         // TODO: Additional support for export encoding...
+    }
+
+    public struct Options: OptionSet, BaseModel {
+        public let rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        /// When enabled, only bloom highlights are drawn.
+        public static let bloomHighlightsOnly = Self(rawValue: 1 << 0)
+        /// When enabled with HDR mode, tones down the HDR brightness relative to nearby SDR content.
+        public static let constrainedHDR = Self(rawValue: 1 << 1)
+
+        public var isBloomHighlightsOnly: Bool {
+            get { contains(.bloomHighlightsOnly) }
+            set { if newValue { insert(.bloomHighlightsOnly) } else { remove(.bloomHighlightsOnly) } }
+        }
+
+        public var isConstrainedHDR: Bool {
+            get { contains(.constrainedHDR) }
+            set { if newValue { insert(.constrainedHDR) } else { remove(.constrainedHDR) } }
+        }
     }
 
     public struct Defaults {
