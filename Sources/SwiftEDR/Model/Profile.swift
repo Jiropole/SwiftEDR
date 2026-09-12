@@ -1,19 +1,12 @@
 //
 //  Picture.swift
-//  EDRCanvas
+//  SwiftEDR
 //
 //  Created by Jesse Hemingway on 8/28/26.
 //
 
 import Foundation
 import SwiftUI
-
-#if os(iOS) || os(visionOS)
-public typealias NativeColor = UIColor
-#elseif os(macOS)
-import AppKit
-public typealias NativeColor = NSColor
-#endif
 
 /// Defines a profile of a color model and customize
 public struct Profile: BaseModel {
@@ -26,7 +19,7 @@ public struct Profile: BaseModel {
     /// Flags that control special or debugging behaviors.
     public var options: Options
 
-    public init(mode: Mode, bloom: Bloom, options: Options = .constrainedHDR) {
+    public init(mode: Mode, bloom: Bloom, options: Options = []) {
         self.mode = mode
         self.bloom = bloom
         self.options = options
@@ -61,12 +54,6 @@ extension Profile {
     /// Create a color from RGBA components that is calibrated for the color space.
     public static func rgbColor(_ components: [CGFloat],
                                 space: CGColorSpace) -> Color {
-        // Original solution results in exactly the same colors regardless of color mode,
-        // I guess due to .perceptual. Not sure if this is the desired result
-        let (red, green, blue, opacity) = (components[0], components[1], components[2], components[3])
-        let p3Color = NativeColor(red: red, green: green, blue: blue, alpha: opacity)
-        let cgColor = p3Color.cgColor
-
         guard let cgColor = CGColor(colorSpace: space, components: components) else {
             return Color(.displayP3, red: components[0], green: components[1],
                          blue: components[2], opacity: components[3])
@@ -77,48 +64,28 @@ extension Profile {
     /// Create a color from HSVA components that is calibrated for the color space.
     public static func hsvColor(_ components: [CGFloat],
                                 space: CGColorSpace) -> Color {
-        let (hue, sat, val, opacity) = (components[0], components[1], components[2], components[3])
-        let (red, green, blue) = hsvToRgb(hue: hue, sat: sat, val: val)
-        let p3Color = NativeColor(red: red, green: green, blue: blue, alpha: opacity)
-
-        let cgColor = p3Color.cgColor
-        guard let cgColor = CGColor(colorSpace: space, components: components) else {
+        let (hue, sat, val, opa) = (components[0], components[1], components[2], components[3])
+        let p3Color = NativeColor(hue: hue, saturation: sat, brightness: val, alpha: opa)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        p3Color.getRed(&r, green: &g, blue: &b, alpha: &a)
+        guard let cgColor = CGColor(colorSpace: space, components: [r, g, b, a]) else {
             return Color(.displayP3, red: components[0], green: components[1],
                          blue: components[2], opacity: components[3])
         }
         return Color(cgColor: cgColor)
-
-//        guard let convertedColor = cgColor
-//            .converted(to: space, intent: .perceptual, options: nil) else {
-//            return Color(cgColor: cgColor)
-//        }
-//        return Color(cgColor: convertedColor)
-    }
-
-    public static func hsvToRgb(hue: CGFloat, sat: CGFloat,
-                                val: CGFloat) -> (red: CGFloat, green: CGFloat, blue: CGFloat) {
-        let sat = min(sat, 1)   // Saturation cannot exceed 1.0
-        let i = hue * 6
-        let f = hue * 6 - i
-        let p = val * (1 - sat)
-        let q = val * (1 - f * sat)
-        let t = val * (1 - (1 - f) * sat)
-        let r, g, b: CGFloat
-        switch (fmod(i, 6)) {
-        case ..<1: r = val; g = t; b = p
-        case ..<2: r = q; g = val; b = p
-        case ..<3: r = p; g = val; b = t
-        case ..<4: r = p; g = q; b = val
-        case ..<5: r = t; g = p; b = val
-        default: r = val; g = p; b = q
-        }
-//        print("r: \(r), g: \(g), b: \(b)")
-        return (red: r, green: g, blue: b)
     }
 
     /// A mode-appropriate value for use with with `.allowedDynamicRange` SwiftUI modifier.
     public var relativeDynamicRange: Image.DynamicRange {
-        mode == .hdr ? (options.contains(.constrainedHDR) ? .constrainedHigh : .high) : .standard
+        switch mode {
+        case .hdr:
+            let result: Image.DynamicRange = options.contains(.constrainedHDR) ? .constrainedHigh : .high
+            print("Dynamic range: \(result)")
+            return result
+        case .edr, .sdr:
+            print("Dynamic range: standard")
+            return .standard
+        }
     }
 
     /// A convenience function to get a modified (often simplified) version of the profile.
@@ -141,37 +108,39 @@ extension Profile {
 
         public var colorSpace: CGColorSpace {
             switch self {
+//            case .hdr:
+//                return CGColorSpace(name: CGColorSpace.extendedLinearITUR_2020)!
+            case  .hdr, .edr:
+                return CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)!
             case .sdr:
-                return CGColorSpaceCreateDeviceRGB()
-            case .edr:
-                return CGColorSpace(name: CGColorSpace.displayP3)!
-            case .hdr:
-                return CGColorSpace(name: CGColorSpace.itur_2100_HLG)!
+                return CGColorSpace(name: CGColorSpace.linearDisplayP3)!
             }
         }
 
         public var renderMode: ColorRenderingMode {
             switch self {
-            case .sdr:
-                return .nonLinear
-            default:
+            case .hdr, .edr:
+                print("Choosing extended linear render mode")
                 return .extendedLinear
+            case .sdr:
+                print("Choosing nonlinear render mode")
+                return .nonLinear
             }
         }
 
         public var colorInfo: ColorInfo {
             switch self {
+            case .hdr, .edr:
+                return ColorInfo(colorSpace: colorSpace,
+                                 bitmapInfo: (CGImageAlphaInfo.premultipliedLast.rawValue |
+                                              CGImageByteOrderInfo.order16Host.rawValue |
+                                              CGBitmapInfo.floatComponents.rawValue),
+                                 bitsPerComponent: 16)
             case .sdr:
                 return ColorInfo(colorSpace: colorSpace,
                                  bitmapInfo: (CGImageAlphaInfo.premultipliedFirst.rawValue |
                                               CGImageByteOrderInfo.order32Big.rawValue),
                                  bitsPerComponent: 8)
-            default:
-                return ColorInfo(colorSpace: colorSpace,
-                                 bitmapInfo: (CGImageAlphaInfo.premultipliedLast.rawValue |
-                                              CGImageByteOrderInfo.order16Little.rawValue |
-                                              CGBitmapInfo.floatComponents.rawValue),
-                                 bitsPerComponent: 16)
             }
         }
     }
@@ -193,9 +162,9 @@ extension Profile {
             self.intensity = intensity
         }
 
-        public static let hdr = Bloom(radius: 0.05, threshold: 1.0, kneeWidth: 0.2, intensity: 1.0)
-        public static let edr = Bloom(radius: 0.05, threshold: 0.9, kneeWidth: 0.1, intensity: 1.0)
-        public static let sdr = Bloom(radius: 0.05, threshold: 0.9, kneeWidth: 0.1, intensity: 1.0)
+        public static let hdr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.2, intensity: 1.0)
+        public static let edr = Bloom(radius: 0.035, threshold: 0.9, kneeWidth: 0.1, intensity: 1.0)
+        public static let sdr = Bloom(radius: 0.035, threshold: 0.9, kneeWidth: 0.1, intensity: 1.0)
         public static let none = Bloom(radius: 0.0, threshold: 1.0, kneeWidth: 0.0, intensity: 0.0)
     }
 
@@ -217,6 +186,8 @@ extension Profile {
         public static let bloomHighlightsOnly = Self(rawValue: 1 << 0)
         /// When enabled with HDR mode, tones down the HDR brightness relative to nearby SDR content.
         public static let constrainedHDR = Self(rawValue: 1 << 1)
+        /// If set, enables default tone mapping.
+        public static let toneMapDefault = Self(rawValue: 1 << 2)
 
         public var isBloomHighlightsOnly: Bool {
             get { contains(.bloomHighlightsOnly) }
@@ -226,6 +197,11 @@ extension Profile {
         public var isConstrainedHDR: Bool {
             get { contains(.constrainedHDR) }
             set { if newValue { insert(.constrainedHDR) } else { remove(.constrainedHDR) } }
+        }
+
+        public var isToneMapDefault: Bool {
+            get { contains(.toneMapDefault) }
+            set { if newValue { insert(.toneMapDefault) } else { remove(.toneMapDefault) } }
         }
     }
 
@@ -237,8 +213,4 @@ extension Profile {
         public static let edrBloom = Profile(mode: .edr, bloom: .edr)
         public static let hdrBloom = Profile(mode: .hdr, bloom: .hdr)
     }
-}
-
-extension EnvironmentValues {
-    @Entry public var profile: Profile?
 }

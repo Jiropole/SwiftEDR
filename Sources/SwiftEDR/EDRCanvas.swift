@@ -8,17 +8,25 @@
 import SwiftUI
 
 /// Use SwiftEDRCanvas as direct replacement for Swift Canvas, extended with support EDR color handling.
-
 public struct EDRCanvas: View {
+    
+    /// Callback function used by the package client to render the canvas.
     public typealias DrawFunction = (_ context: inout GraphicsContext,
                                      _ size: CGSize,
-                                     _ profile: Profile) -> Void
+                                     _ profile: Profile,
+                                     _ headroom: Headroom) -> Void
 
+    /// Same as Canvas parameter `isOpaque`.
     private let isOpaque: Bool
+
+    /// Same as Canvas parameter `rendersAsynchronously`.
     private let rendersAsynchronously: Bool
+
+    /// Draw function called when the canvas needs to be rendered.
     private let onDraw: DrawFunction
 
-    @Environment(\.profile) private var profile
+    @Environment(\.edrProfile) private var profile
+    @Environment(\.edrHeadroom) private var headroom
 
     public init(isOpaque: Bool = false,
                 rendersAsynchronously: Bool = false,
@@ -30,11 +38,17 @@ public struct EDRCanvas: View {
 
     public var body: some View {
         Canvas(opaque: isOpaque,
-               colorMode: profile?.mode.renderMode ?? .nonLinear,
+               colorMode: profile.mode.renderMode,
                rendersAsynchronously: rendersAsynchronously) { context, size in
+
+            // Read intantaneous headroom for use with HDR mode.
+            let headroom = profile.mode == .hdr ? (NativeScreen.headroom ?? self.headroom) : .init()
+
+            // Draw using the current profile, or else default to SDR.
             onDraw(&context,
                    size,
-                   profile ?? .Defaults.sdr)
+                   profile,
+                   headroom)
         }
     }
 }

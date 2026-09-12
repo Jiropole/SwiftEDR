@@ -8,7 +8,6 @@
 import SwiftUI
 
 /// Produces a bloom effect on the content view..
-
 public struct BloomModifier: ViewModifier {
     /// EDR profile configuration.
     public let profile: Profile
@@ -18,16 +17,18 @@ public struct BloomModifier: ViewModifier {
             if profile.bloom.radius > 0, profile.bloom.intensity > 0 {
                 ZStack {
                     // Layer the unmodified content.
-                    if !profile.options.isBloomHighlightsOnly {
-                        content
-                    }
+                    content
+                        .opacity(profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
+
                     // Extract a highlights layer from the content to be screened on top.
                     content
                         .modifier(HighlightsModifier(profile: profile))
                 }
+                // Screen highlights layer over content.
                 .blendMode(.screen)
-            } else if !profile.options.isBloomHighlightsOnly {
+            } else {
                 content
+                    .opacity(profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
             }
         }
     }

@@ -12,16 +12,18 @@ struct TestRenderer {
     let context: GraphicsContext
     let size: CGSize
     let profile: Profile
+    let headroom: Headroom
     let elapsed: TimeInterval
     let colorAlpha: CGFloat
     let objectCount: Int
     let objectSize: CGFloat
 
-    init(ctx: GraphicsContext, size: CGSize, profile: Profile, elapsed: TimeInterval,
-         colorAlpha: CGFloat, objectCount: Int, objectSize: CGFloat = 50) {
+    init(ctx: GraphicsContext, size: CGSize, profile: Profile, headroom: Headroom,
+         elapsed: TimeInterval, colorAlpha: CGFloat, objectCount: Int, objectSize: CGFloat = 50) {
         self.context = ctx
         self.size = size
         self.profile = profile
+        self.headroom = headroom
         self.elapsed = elapsed
         self.colorAlpha = colorAlpha
         self.objectCount = objectCount
@@ -29,12 +31,16 @@ struct TestRenderer {
     }
 
     func render() {
-        let objectsPerColor = objectCount / colors.count
-        let heightPerColor = (size.height - objectSize) / CGFloat(colors.count + 1)
+        var context = self.context
+        context.blendMode = .screen
+
+        let colors = rgbColors
+        let objectsPerColor = objectCount / rgbColors.count
+        let heightPerColor = (size.height - objectSize) / CGFloat(rgbColors.count + 1)
         let viewRadius = min(size.width, size.height) / 2
         let objectSize = self.objectSize * viewRadius
-        let colorSteps = colors.reversed().enumerated()
 
+        let colorSteps = colors.reversed().enumerated()
         for (colorIndex, color) in colorSteps {
             let uColor = CGFloat(colorIndex) / CGFloat(colors.count)
             let yBase = heightPerColor / 2 + uColor * size.height
@@ -58,21 +64,43 @@ struct TestRenderer {
 }
 
 private extension TestRenderer {
-    var colors: [Color] {
+    var rgbColors: [Color] {
+        func osc(_ angle: CGFloat) -> CGFloat {
+            pow((1 + sin(angle)) / 2, 3) * headroom.current
+        }
+
         let rawColors: [[CGFloat]] = (0..<8).map { index in
             let uIndex = CGFloat(index) / 8
             let basePhase = 2 * .pi * uIndex
             let frequency = 0.1 + uIndex * 0.05
             let timePhase = 2 * .pi * elapsed * frequency
 
-            let phaseWobble: CGFloat = 0.12 + sin(timePhase * 0.01 + basePhase) * 0.12 // (1 - 2 * phaseSpread)
+            let phaseWobble: CGFloat = 0.12 + sin(timePhase * 0.01 + basePhase) * 0.12
 
-            return [0.6 + 0.4 * sin(timePhase),
-                    0.6 + 0.4 * sin(timePhase + phaseWobble * 2 * .pi),
+            return [osc(timePhase),
+                    osc(timePhase + phaseWobble * 2 * .pi),
+                    osc(timePhase - phaseWobble * 2 * .pi),
+                    colorAlpha]
+        }
+
+        return profile.rgbColors(rawColors) //.map { $0.headroom(headroom.current) }
+    }
+
+    var hsvColors: [Color] {
+        let rawColors: [[CGFloat]] = (0..<8).map { index in
+            let uIndex = CGFloat(index) / 8
+            let basePhase = 2 * .pi * uIndex
+            let frequency = 0.1 + uIndex * 0.05
+            let timePhase = 2 * .pi * elapsed * frequency
+
+            let phaseWobble: CGFloat = 0.12 + sin(timePhase * 0.01 + basePhase) * 0.12
+
+            return [0.5 + 0.5 * sin(timePhase),
+                    0.5 + 0.5 * sin(timePhase + phaseWobble * 2 * .pi),
                     0.6 + 0.4 * sin(timePhase - phaseWobble * 2 * .pi),
                     colorAlpha]
         }
 
-        return profile.rgbColors(rawColors)
+        return profile.hsvColors(rawColors)
     }
 }

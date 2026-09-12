@@ -5,8 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftEDR",
-    // The engine targets iOS, macOS, and visionOS. visionOS 2 is the release
-    // contemporaneous with iOS 18 / macOS 15.
+    // The engine targets iOS, macOS, and visionOS.
     platforms: [
         .iOS(.v18),
         .macOS(.v15),
