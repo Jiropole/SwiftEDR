@@ -30,8 +30,8 @@ using namespace metal;
 }
 
 [[ stitchable ]] half4 defaultToneMap(float2 position,
-                                        SwiftUI::Layer layer,
-                                        float headroom) {
+                                      SwiftUI::Layer layer,
+                                      float headroom) {
     half4 color = layer.sample(position);
 
     // Extract color values above SDR 1.0

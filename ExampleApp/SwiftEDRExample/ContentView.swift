@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftEDR
 
 struct ContentView: View {
-    @State private var profile: Profile = .Defaults.hdrBloom
+    @State private var profile: Profile = .Defaults.edrBloom
     @State private var config: ControlsView.Config = .default
 
     @State private var startDate: Date = Date()

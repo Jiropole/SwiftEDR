@@ -7,9 +7,9 @@ let package = Package(
     name: "SwiftEDR",
     // The engine targets iOS, macOS, and visionOS.
     platforms: [
-        .iOS(.v18),
-        .macOS(.v15),
-        .visionOS(.v2),
+        .iOS(.v26),
+        .macOS(.v26),
+        .visionOS(.v26),
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.

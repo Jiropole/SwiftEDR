@@ -32,7 +32,7 @@ struct TestRenderer {
 
     func render() {
         var context = self.context
-        context.blendMode = .screen
+        context.blendMode = .plusLighter
 
         let colors = rgbColors
         let objectsPerColor = objectCount / rgbColors.count
@@ -83,7 +83,7 @@ private extension TestRenderer {
                     colorAlpha]
         }
 
-        return profile.rgbColors(rawColors) //.map { $0.headroom(headroom.current) }
+        return profile.rgbColors(rawColors).map { $0.headroom(headroom.potential) }
     }
 
     var hsvColors: [Color] {

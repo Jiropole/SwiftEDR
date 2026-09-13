@@ -25,7 +25,7 @@ public struct BloomModifier: ViewModifier {
                         .modifier(HighlightsModifier(profile: profile))
                 }
                 // Screen highlights layer over content.
-                .blendMode(.screen)
+                .blendMode(.plusLighter)
             } else {
                 content
                     .opacity(profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)

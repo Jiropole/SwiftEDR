@@ -29,6 +29,12 @@ public final class HeadroomPoller {
         print("Mode \(profile.mode): \(headroom)")
         guard pollfrequency > 0 else { return }
 
+        // For MacOS, could use this notification instead, maybe.
+        //        // Listen to changes when user adjusts brightness or moves windows across displays
+        //        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didChangeScreenParametersNotification)) { _ in
+        //            updateHeadroom()
+        //        }
+
         // If polling is enabled, start a poll timer.
         let interval: TimeInterval = 1.0 / pollfrequency
         self.timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in

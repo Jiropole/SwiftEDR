@@ -79,11 +79,8 @@ extension Profile {
     public var relativeDynamicRange: Image.DynamicRange {
         switch mode {
         case .hdr:
-            let result: Image.DynamicRange = options.contains(.constrainedHDR) ? .constrainedHigh : .high
-            print("Dynamic range: \(result)")
-            return result
+            return options.contains(.constrainedHDR) ? .constrainedHigh : .high
         case .edr, .sdr:
-            print("Dynamic range: standard")
             return .standard
         }
     }
@@ -108,8 +105,6 @@ extension Profile {
 
         public var colorSpace: CGColorSpace {
             switch self {
-//            case .hdr:
-//                return CGColorSpace(name: CGColorSpace.extendedLinearITUR_2020)!
             case  .hdr, .edr:
                 return CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)!
             case .sdr:
@@ -120,10 +115,8 @@ extension Profile {
         public var renderMode: ColorRenderingMode {
             switch self {
             case .hdr, .edr:
-                print("Choosing extended linear render mode")
                 return .extendedLinear
             case .sdr:
-                print("Choosing nonlinear render mode")
                 return .nonLinear
             }
         }
