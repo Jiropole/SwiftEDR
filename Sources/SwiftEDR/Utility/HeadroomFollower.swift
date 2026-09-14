@@ -11,7 +11,7 @@ import SwiftUI
 /// Helper class that polls the current screen's headroom info and updates `headroom`.
 /// For performance reasons, it may be unwise to use high polling frequencies.
 @Observable
-public final class HeadroomPoller {
+public final class HeadroomFollower {
     private let profile: Profile
 
     // Fluctuates according to changing screen characteristics.
@@ -23,7 +23,8 @@ public final class HeadroomPoller {
     @ObservationIgnored
     private var lastChange: Date = .distantPast
 
-    /// `pollfrequency` = 0 disables polling.
+    /// Initialize a poller for the given profile.
+    /// `pollfrequency` controls the maximum poll frequency, and 0 disables polling.
     public init(profile: Profile, pollfrequency: TimeInterval = 1.0) {
         self.profile = profile
 
@@ -47,7 +48,7 @@ public final class HeadroomPoller {
             let headroom = Self.supportedHeadroom(forMode: profile.mode)
             if self.headroom != headroom {
                 self.headroom = headroom
-                // Don't backoff so long as values keep changing quickly.
+                // Don't backoff so long as values keep changing.
                 return false
             } else {
                 return true

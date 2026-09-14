@@ -14,14 +14,14 @@ public struct EDRModifier: ViewModifier {
     private let profile: Profile
 
     /// The poller will poll for changes to headroom.
-    private let poller: HeadroomPoller
+    private let headroomFollower: HeadroomFollower
 
     /// Initialize a modifier for the given profile.
     /// * pollFrequency controls how often the `headroom` environment value is updated, in Hz. High frequency polling is not recommended. Default: 1Hz.
     /// * If high frequency headroom updates are required, EDRCanvas is the better choice.
     public init(profile: Profile, pollFrequency: CGFloat = 1) {
         self.profile = profile
-        self.poller = HeadroomPoller(profile: profile, pollfrequency: pollFrequency)
+        self.headroomFollower = HeadroomFollower(profile: profile, pollfrequency: pollFrequency)
     }
 
     public func body(content: Content) -> some View {
@@ -30,16 +30,16 @@ public struct EDRModifier: ViewModifier {
             .modifier(BloomModifier(profile: profile))
 
             // Add any tone mapping effect (needs work).
-            .modifier(ToneMapModifier(profile: profile, headroom: poller.headroom))
+            .modifier(ToneMapModifier(profile: profile, headroom: headroomFollower.headroom))
 
             // Assert any current request for elevated headroom, which can be disrupted by shaders in the pipeline.
-            .modifier(HeadroomAsserter(profile: profile, headroom: poller.headroom))
+            .modifier(HeadroomAsserter(profile: profile, headroom: headroomFollower.headroom))
 
             // Adjust requested dynamic range according to mode and options.
             .allowedDynamicRange(profile.relativeDynamicRange)
 
             // Add profile and headroom to environment.
             .environment(\.edrProfile, profile)
-            .environment(\.edrHeadroom, poller.headroom)
+            .environment(\.edrHeadroom, headroomFollower.headroom)
     }
 }
