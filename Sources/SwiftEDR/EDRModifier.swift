@@ -13,7 +13,7 @@ public struct EDRModifier: ViewModifier {
     /// EDR profile configuration.
     private let profile: Profile
 
-    /// The poller will poll for changes to headroom.
+    /// The follower will publish changes to headroom attributes.
     private let headroomFollower: HeadroomFollower
 
     /// Initialize a modifier for the given profile.

@@ -19,6 +19,7 @@ struct ContentView: View {
         VStack(spacing: 8) {
             Picker("Dynamic Range", selection: .init(get: { profile.mode },
                                                      set: { profile.mode = $0 })) {
+                Text("SDR-NL").tag(Profile.Mode.sdrNonlinear)
                 Text("SDR").tag(Profile.Mode.sdr)
                 Text("EDR").tag(Profile.Mode.edr)
                 Text("HDR").tag(Profile.Mode.hdr)
@@ -149,6 +150,8 @@ private extension ContentView {
                     switch profile.mode {
                     case .sdr:
                         profile = .Defaults.sdrBloom
+                    case .sdrNonlinear:
+                        profile = .Defaults.sdrNonlinear
                     case .edr:
                         profile = .Defaults.edrBloom
                     case .hdr:
@@ -173,59 +176,6 @@ private extension ContentView {
         .background(Color.white.opacity(0.3))
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .padding(4)
-    }
-}
-
-private struct HeroOverlay: View {
-    let elapsed: CGFloat
-
-    @Environment(\.edrProfile) private var profile
-    @Environment(\.edrHeadroom) private var headroom
-
-    var body: some View {
-        VStack(spacing: 32) {
-            ZStack {
-                subImage(offset: -0.25)
-                subImage(offset: 0)
-                subImage(offset: 0.25)
-                subImage(offset: 0.5)
-            }
-            .blendMode(.plusLighter)
-            .padding(.horizontal, 48)
-
-            Text("Applying EDRModifier to an arbitrary view\nHeadroom: \(headroom.current, specifier: "%.2f") / \(headroom.potential, specifier: "%.2f")")
-                .multilineTextAlignment(.center)
-                .font(.headline.bold().italic())
-                .foregroundStyle(profile.hsvColor([
-                    fmod(elapsed / 8, 1), // hue
-                    0.9 + 0.1 * sin(elapsed * 2 * .pi / 3), // saturation
-                    (0.4 + 0.3 * sin(elapsed * 2 * .pi / 5)) * (1 + headroom.current) / 2, // value/brightness
-                    1.0 // opacity
-                ]).headroom(headroom.potential))
-        }
-    }
-
-    func subImage(offset: CGFloat) -> some View {
-        let stepElapsed = elapsed + offset
-        return Image(systemName: "progress.indicator",
-                     variableValue: fmod(stepElapsed / 4, 1))
-        .resizable()
-        .aspectRatio(1, contentMode: .fit)
-        .frame(maxWidth: 500)
-        .fontWeight(.bold)
-//        .foregroundStyle(profile.rgbColor([
-//            0.6 + 0.6 * sin(stepElapsed * 2 * .pi / 11) * headroom.current, // red
-//            0.6 + 0.6 * sin(stepElapsed * 2 * .pi / 10) * headroom.current, // green
-//            0.6 + 0.6 * sin(stepElapsed * 2 * .pi / 19) * headroom.current, // blue
-//            1.0 // opacity
-//        ]).headroom(headroom.potential))
-        .foregroundStyle(profile.hsvColor([
-            fmod(stepElapsed / 8, 1), // hue
-            0.8 + 0.2 * sin(elapsed * 2 * .pi / 3), // saturation
-            (0.4 + 0.3 * sin(stepElapsed * 2 * .pi / 5)) * (1 + headroom.current) / 2, // value/brightness
-            1.0 // opacity
-        ]).headroom(headroom.potential))
-        .rotationEffect(.radians(.pi / 8 * offset + .pi * offset))
     }
 }
 

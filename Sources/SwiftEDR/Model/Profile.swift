@@ -29,23 +29,23 @@ public struct Profile: BaseModel {
 // MARK: Color Convenience
 
 extension Profile {
-    /// Convenience function to get a color space appropriate color.
+    /// Convenience function to get a color space appropriate color from RGBA components.
     public func rgbColor(_ components: [CGFloat]) -> Color {
         Self.rgbColor(components, space: mode.colorSpace)
     }
 
-    /// Convenience function to get color space appropriate colors.
+    /// Convenience function to get color space appropriate colors from RGBA components.
     public func rgbColors(_ colors: [[CGFloat]]) -> [Color] {
         let space = mode.colorSpace
         return colors.map { Self.rgbColor($0, space: space) }
     }
 
-    /// Convenience function to get a color space appropriate color.
+    /// Convenience function to get a color space appropriate color from HSVA components.
     public func hsvColor(_ components: [CGFloat]) -> Color {
         Self.hsvColor(components, space: mode.colorSpace)
     }
 
-    /// Convenience function to get color space appropriate colors.
+    /// Convenience function to get color space appropriate colors from HSVA components.
     public func hsvColors(_ colors: [[CGFloat]]) -> [Color] {
         let space = mode.colorSpace
         return colors.map { Self.hsvColor($0, space: space) }
@@ -80,7 +80,7 @@ extension Profile {
         switch mode {
         case .hdr:
             return options.contains(.constrainedHDR) ? .constrainedHigh : .high
-        case .edr, .sdr:
+        case .edr, .sdr, .sdrNonlinear:
             return .standard
         }
     }
@@ -96,8 +96,10 @@ extension Profile {
 extension Profile {
     /// A set of EDR options selecting between different drawing bit depth, color range and tone mapping.
     public enum Mode: BaseModel {
-        /// Standard color range and bit depth.
+        /// Standard color range and bit depth with linear color.
         case sdr
+        /// Standard color range and bit depth with nonlinear color (displayP3).
+        case sdrNonlinear
         /// Extended color range and bit depth for precise color math, displayed in the standard SRGB color range.
         case edr
         /// Extended color range and bit depth for precise color math displayed in an extended HDR color range with higher contrast and absolute brightness.
@@ -109,6 +111,8 @@ extension Profile {
                 return CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)!
             case .sdr:
                 return CGColorSpace(name: CGColorSpace.linearDisplayP3)!
+            case .sdrNonlinear:
+                return CGColorSpace(name: CGColorSpace.displayP3)!
             }
         }
 
@@ -118,6 +122,8 @@ extension Profile {
                 return .extendedLinear
             case .sdr:
                 return .linear
+            case .sdrNonlinear:
+                return .nonLinear
             }
         }
 
@@ -129,7 +135,7 @@ extension Profile {
                                               CGImageByteOrderInfo.order16Host.rawValue |
                                               CGBitmapInfo.floatComponents.rawValue),
                                  bitsPerComponent: 16)
-            case .sdr:
+            case .sdr, .sdrNonlinear:
                 return ColorInfo(colorSpace: colorSpace,
                                  bitmapInfo: (CGImageAlphaInfo.premultipliedFirst.rawValue |
                                               CGImageByteOrderInfo.order32Big.rawValue),
@@ -199,9 +205,12 @@ extension Profile {
     }
 
     public struct Defaults {
+        public static let sdrNonlinear = Profile(mode: .sdrNonlinear, bloom: .none)
         public static let sdr = Profile(mode: .sdr, bloom: .none)
         public static let edr = Profile(mode: .edr, bloom: .none)
         public static let hdr = Profile(mode: .hdr, bloom: .none)
+
+        public static let sdrBloomNonlinear = Profile(mode: .sdrNonlinear, bloom: .sdr)
         public static let sdrBloom = Profile(mode: .sdr, bloom: .sdr)
         public static let edrBloom = Profile(mode: .edr, bloom: .edr)
         public static let hdrBloom = Profile(mode: .hdr, bloom: .hdr)
