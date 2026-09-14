@@ -117,7 +117,7 @@ extension Profile {
             case .hdr, .edr:
                 return .extendedLinear
             case .sdr:
-                return .nonLinear
+                return .linear
             }
         }
 
@@ -156,8 +156,8 @@ extension Profile {
         }
 
         public static let hdr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.2, intensity: 1.0)
-        public static let edr = Bloom(radius: 0.035, threshold: 0.9, kneeWidth: 0.1, intensity: 1.0)
-        public static let sdr = Bloom(radius: 0.035, threshold: 0.9, kneeWidth: 0.1, intensity: 1.0)
+        public static let edr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.1, intensity: 1.0)
+        public static let sdr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.1, intensity: 1.0)
         public static let none = Bloom(radius: 0.0, threshold: 1.0, kneeWidth: 0.0, intensity: 0.0)
     }
 
@@ -179,7 +179,7 @@ extension Profile {
         public static let bloomHighlightsOnly = Self(rawValue: 1 << 0)
         /// When enabled with HDR mode, tones down the HDR brightness relative to nearby SDR content.
         public static let constrainedHDR = Self(rawValue: 1 << 1)
-        /// If set, enables default tone mapping.
+        /// If set, enables default tone mapping. Experimental.
         public static let toneMapDefault = Self(rawValue: 1 << 2)
 
         public var isBloomHighlightsOnly: Bool {

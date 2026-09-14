@@ -64,10 +64,11 @@ struct TestRenderer {
 }
 
 private extension TestRenderer {
+    func osc(_ angle: CGFloat) -> CGFloat {
+        pow((1 + sin(angle)) / 2, 3) * headroom.current
+    }
+
     var rgbColors: [Color] {
-        func osc(_ angle: CGFloat) -> CGFloat {
-            pow((1 + sin(angle)) / 2, 3) * headroom.current
-        }
 
         let rawColors: [[CGFloat]] = (0..<8).map { index in
             let uIndex = CGFloat(index) / 8
@@ -97,10 +98,10 @@ private extension TestRenderer {
 
             return [0.5 + 0.5 * sin(timePhase),
                     0.5 + 0.5 * sin(timePhase + phaseWobble * 2 * .pi),
-                    0.6 + 0.4 * sin(timePhase - phaseWobble * 2 * .pi),
+                    osc(timePhase),
                     colorAlpha]
         }
 
-        return profile.hsvColors(rawColors)
+        return profile.hsvColors(rawColors).map { $0.headroom(headroom.potential) }
     }
 }

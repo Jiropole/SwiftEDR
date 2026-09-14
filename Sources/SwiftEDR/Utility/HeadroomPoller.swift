@@ -29,32 +29,46 @@ public final class HeadroomPoller {
         print("Mode \(profile.mode): \(headroom)")
         guard pollfrequency > 0 else { return }
 
-        // For MacOS, could use this notification instead, maybe.
-        //        // Listen to changes when user adjusts brightness or moves windows across displays
-        //        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didChangeScreenParametersNotification)) { _ in
-        //            updateHeadroom()
-        //        }
+#if os(iOS)
+        // In iOS, there is no way to be notified when headroom changes.
+        // However, headroom is likely to change when brightness changes.
+        NotificationCenter.default
+            .addObserver(self, selector: #selector(updateHeadroom),
+                         name: UIScreen.brightnessDidChangeNotification, object: nil)
 
-        // If polling is enabled, start a poll timer.
+        // As a fallback, we start a poll timer.
         let interval: TimeInterval = 1.0 / pollfrequency
         self.timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            let headroom = Self.supportedHeadroom(forMode: self.profile.mode)
-            guard headroom != self.headroom else { return }
-
-            print("Mode \(self.profile.mode): \(headroom)")
-            self.headroom = headroom
+            self?.updateHeadroom()
         }
-
         // Try to keep the overhead low.
         self.timer?.tolerance = interval * 0.5
+
+#elseif os(macOS)
+        // In AppKit there is a convenient notification whenever headroom changes.
+        NotificationCenter.default
+            .addObserver(self, selector: #selector(updateHeadroom),
+                         name: NativeApplication.didChangeScreenParametersNotification, object: nil)
+#endif
     }
 
     deinit {
+        // It is not necessary to unregister for notifications.
         self.timer?.invalidate()
     }
 
     private static func supportedHeadroom(forMode mode: Profile.Mode) -> Headroom {
-        mode == .hdr ? NativeScreen.headroom ?? .init() : .init()
+#if os(visionOS)
+        mode == .hdr ? Headroom(current: 10, potential: 10, reference: 0) : .init()
+#else
+        mode == .hdr ? Headroom.readHeadroom() ?? .init() : .init()
+#endif
+    }
+
+    @objc private func updateHeadroom(notification: Notification? = nil) {
+        let headroom = Self.supportedHeadroom(forMode: self.profile.mode)
+        guard headroom != self.headroom else { return }
+        print("Mode \(profile.mode): \(headroom)")
+        self.headroom = headroom
     }
 }

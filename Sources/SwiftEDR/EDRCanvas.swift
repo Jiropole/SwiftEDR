@@ -42,7 +42,7 @@ public struct EDRCanvas: View {
                rendersAsynchronously: rendersAsynchronously) { context, size in
 
             // Read intantaneous headroom for use with HDR mode.
-            let headroom = profile.mode == .hdr ? (NativeScreen.headroom ?? self.headroom) : .init()
+            let headroom = profile.mode == .hdr ? (Headroom.readHeadroom() ?? self.headroom) : .init()
 
             // Draw using the current profile, or else default to SDR.
             onDraw(&context,

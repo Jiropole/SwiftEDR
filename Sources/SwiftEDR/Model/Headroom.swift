@@ -23,18 +23,21 @@ public struct Headroom: BaseModel {
         self.potential = potential
         self.reference = reference
     }
-    
-#if os(iOS) || os(visionOS)
-    public init(screen: NativeScreen) {
-        self.current = screen.currentEDRHeadroom
-        self.potential = screen.potentialEDRHeadroom
-        self.reference = 0
-    }
+
+    public static func readHeadroom() -> Headroom? {
+#if os(iOS)
+        guard let screen = (NativeApplication.shared.connectedScenes
+            .first as? UIWindowScene)?.screen else { return nil }
+        return Headroom(current: screen.currentEDRHeadroom,
+                        potential: screen.potentialEDRHeadroom)
 #elseif os(macOS)
-    public init(screen: NativeScreen) {
-        self.current = screen.maximumExtendedDynamicRangeColorComponentValue
-        self.potential = screen.maximumPotentialExtendedDynamicRangeColorComponentValue
-        self.reference = screen.maximumReferenceExtendedDynamicRangeColorComponentValue
-    }
+        guard let screen = NSApplication.shared.keyWindow?.screen else { return nil }
+        return Headroom(current: screen.maximumExtendedDynamicRangeColorComponentValue,
+                        potential: screen.maximumPotentialExtendedDynamicRangeColorComponentValue,
+                        reference: screen.maximumReferenceExtendedDynamicRangeColorComponentValue)
+#elseif os(visionOS)
+        // Not aware of any way to get this value for VisionOS, or if it even applies.
+        return Headroom()
 #endif
+    }
 }

@@ -26,9 +26,14 @@ public struct EDRModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
         content
-            // Add bloom and tone mapping effects.
+            // Add any bloom effect.
             .modifier(BloomModifier(profile: profile))
+
+            // Add any tone mapping effect (needs work).
             .modifier(ToneMapModifier(profile: profile, headroom: poller.headroom))
+
+            // Assert any current request for elevated headroom, which can be disrupted by shaders in the pipeline.
+            .modifier(HeadroomAsserter(profile: profile, headroom: poller.headroom))
 
             // Adjust requested dynamic range according to mode and options.
             .allowedDynamicRange(profile.relativeDynamicRange)

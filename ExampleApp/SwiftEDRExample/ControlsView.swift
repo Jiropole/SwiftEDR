@@ -44,13 +44,13 @@ private extension ControlsView {
         Grid(alignment: .topTrailing, horizontalSpacing: 16, verticalSpacing: 4) {
             GridRow {
                 objectCountControl
-                objectSizeControl
                 objectOpacityControl
+                objectSizeControl
             }
             GridRow {
-                bloomRadiusControl
                 bloomIntensityControl
                 bloomThresholdControl
+                bloomRadiusControl
             }
             GridRow(alignment: .bottom) {
                 backgroundLevelControl
@@ -64,11 +64,11 @@ private extension ControlsView {
     var compactGlobalControls: some View {
         VStack(spacing: 4) {
             objectCountControl
-            objectSizeControl
             objectOpacityControl
-            bloomRadiusControl
+            objectSizeControl
             bloomIntensityControl
             bloomThresholdControl
+            bloomRadiusControl
         }
     }
 
@@ -129,9 +129,9 @@ private extension ControlsView {
     var bloomThresholdControl: some View {
         attributeSlider {
             Text("Bloom Thresh: \(formatter.string(from: profile.bloom.threshold as NSNumber)!)")
-            Slider(value: $profile.bloom.threshold, in: 0.1...2)
+            Slider(value: $profile.bloom.threshold, in: 0.1...10)
         } reset: {
-            profile.bloom.threshold = profile.mode == .hdr ? 1 : 0.9
+            profile.bloom.threshold = 1.0
         }
     }
 
