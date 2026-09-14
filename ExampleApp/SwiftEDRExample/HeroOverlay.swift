@@ -49,6 +49,7 @@ struct HeroOverlay: View {
             0.8 + 0.2 * sin(elapsed * 2 * .pi / 3), // saturation
             (0.4 + 0.3 * sin(elapsed * 2 * .pi / 5)) * (1 + headroom.current) / 2, // value/brightness
             1.0 // opacity
-        ]).headroom(headroom.potential)
+        ])
+        .headroom(headroom.potential)
     }
 }

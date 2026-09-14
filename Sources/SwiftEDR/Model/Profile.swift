@@ -16,12 +16,22 @@ public struct Profile: BaseModel {
     /// Controls optional bloom effect.
     public var bloom: Bloom
 
+    /// If set, constrains the maximum requested headroom. This is reflected in both current and potential headroom.
+    public var maximumHeadroom: CGFloat
+
     /// Flags that control special or debugging behaviors.
     public var options: Options
 
-    public init(mode: Mode, bloom: Bloom, options: Options = []) {
+    /// Initialize an EDR Profile.
+    /// - Parameters:
+    ///   - mode: Determines color space, bit depth, and dynamic range behaviors.
+    ///   - bloom: Controls bloom effect.
+    ///   - maximumHeadroom: Limits the maximum current and potential headroom reported to the application.
+    ///   - options: Controls special rendering options.
+    public init(mode: Mode, bloom: Bloom, maximumHeadroom: CGFloat = 1024, options: Options = []) {
         self.mode = mode
         self.bloom = bloom
+        self.maximumHeadroom = maximumHeadroom
         self.options = options
     }
 }

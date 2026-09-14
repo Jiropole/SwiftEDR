@@ -81,7 +81,7 @@ private extension ContentView {
     }
 
     func edrCanvasViewWithProfile(_ profile: Profile, elapsed: TimeInterval) -> some View {
-        EDRCanvas(isOpaque: true) { context, size, profile, headroom in
+        EDRCanvas(opaque: true) { context, size, profile, headroom in
             TestRenderer(ctx: context,
                          size: size,
                          profile: profile,

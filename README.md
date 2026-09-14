@@ -113,6 +113,7 @@ Profile is composed of the following attributes:
     * .edr - Extended Dynamic Range (normal color range + bloom)
     * .hdr – High Dynamic Range (extended color range + more)
 * `bloom`, described below.
+* `maximumHeadroom` – Constrains the maximum requested headroom in HDR mode. Defaults to 1024, but 4 to 12 are also reasonable values, in practice.
 * `options', any of:
     * .bloomHighlightsOnly – show the bloom effect alone, hiding the content, for tuning.
     * .constrainedHDR – enable to constrain the maximum HDR brightness, for example to avoid overpowering adjacent UI or content elements. 
@@ -149,9 +150,24 @@ Let's say the current headroom is 12. Some rather crude examples to illustrate:
 * SDR red in RGB: (1, 0, 0). Or, pop-out red in HDR: (10, 0, 0)
 * SDR white in HSV: (0, 0, 1). Or pop out white in HDR: (0, 0, 10) 
 
-This visual gravy comes with a price: as color values grow "hotter", there is increased tonal non-linearity. There is no practical upper limit on color component values, because tone mapping squeezes this range back into expressible pixel values. This non-linearity may be further accentuated when significant Bloom is present. It is best to take the current headroom into account when choosing colors or considering how colors may become hotter with certain blend modes. 
+Note that it is necessary to indicate the desired headroom when creating colors for rendering, in order to drive demand on the HDR subsystem. For example:
+
+```swift
+@Environment(\.edrProfile) private var profile
+@Environment(\.edrHeadroom) private var headroom
+    
+var popoutRed: Color {
+    profile.rgbColor([headroom.current * 0.75, 0, 0, 1]).headroom(headroom.potential)
+}
+```
+
+This visual gravy comes with another price: as color values grow "hotter", there is increased tonal non-linearity. There is no practical upper limit on color component values, because tone mapping squeezes this range back into expressible pixel values. This non-linearity may be further accentuated when significant Bloom is present. 
+
+It is best to take the current headroom into account when choosing colors, as shown above, but also when considering how colors may become hotter with certain blend modes. 
 
 While this package can be used to quickly add a cinematic effect to tastefully chosen elements of any SwiftUI application, best results are achieved using content colors designed around the advantages and challenges of HDR.
+
+Please do see the Example App to view practical application of these principles in code.
 
  
  # License

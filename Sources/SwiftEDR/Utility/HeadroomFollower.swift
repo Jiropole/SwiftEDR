@@ -29,7 +29,7 @@ public final class HeadroomFollower {
         self.profile = profile
 
         // Initialize with current screen headroom.
-        self.headroom = Self.supportedHeadroom(forMode: profile.mode)
+        self.headroom = Self.supportedHeadroomForProfile(profile)
 //        print("Mode \(profile.mode): \(headroom)")
         guard pollfrequency > 0 else { return }
 
@@ -45,7 +45,7 @@ public final class HeadroomFollower {
         self.repeater = BackoffRepeater(delayRange: 0.04...maxInterval)
         self.repeater?.execute { [weak self] in
             guard let self = self else { return true }
-            let headroom = Self.supportedHeadroom(forMode: profile.mode)
+            let headroom = Self.supportedHeadroomForProfile(profile)
             if self.headroom != headroom {
                 self.headroom = headroom
                 // Don't backoff so long as values keep changing.
@@ -63,16 +63,19 @@ public final class HeadroomFollower {
 #endif
     }
 
-    private static func supportedHeadroom(forMode mode: Profile.Mode) -> Headroom {
+    private static func supportedHeadroomForProfile(_ profile: Profile) -> Headroom {
 #if os(visionOS)
-        mode == .hdr ? Headroom(current: 10, potential: 10, reference: 0) : .init()
+        var headroom = profile.mode == .hdr ? Headroom(current: 10, potential: 10, reference: 0) : .init()
 #else
-        mode == .hdr ? Headroom.readHeadroom() ?? .init() : .init()
+        var headroom = profile.mode == .hdr ? Headroom.readHeadroom() ?? .init() : .init()
 #endif
+        return Headroom(current: min(headroom.current, profile.maximumHeadroom),
+                        potential: min(headroom.current, profile.maximumHeadroom),
+                        reference: min(headroom.current, profile.maximumHeadroom))
     }
 
     @objc private func updateHeadroom(notification: Notification? = nil) {
-        let headroom = Self.supportedHeadroom(forMode: self.profile.mode)
+        let headroom = Self.supportedHeadroomForProfile(profile)
         guard headroom != self.headroom else { return }
 //        print("Mode \(profile.mode): \(headroom)")
         self.headroom = headroom

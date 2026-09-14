@@ -16,7 +16,7 @@ public struct EDRCanvas: View {
                                      _ profile: Profile,
                                      _ headroom: Headroom) -> Void
 
-    /// Same as Canvas parameter `isOpaque`.
+    /// Same as Canvas parameter `opaque`.
     private let isOpaque: Bool
 
     /// Same as Canvas parameter `rendersAsynchronously`.
@@ -28,10 +28,16 @@ public struct EDRCanvas: View {
     @Environment(\.edrProfile) private var profile
     @Environment(\.edrHeadroom) private var headroom
 
-    public init(isOpaque: Bool = false,
+
+    /// Initialize an EDR Canvas with a given draw function.
+    /// - Parameters:
+    ///   - opaque: Same as Canvas parameter `opaque`.
+    ///   - rendersAsynchronously: Same as Canvas parameter `rendersAsynchronously`.
+    ///   - onDraw: Draw function called when the canvas needs to be rendered.
+    public init(opaque: Bool = false,
                 rendersAsynchronously: Bool = false,
                 onDraw: @escaping DrawFunction) {
-        self.isOpaque = isOpaque
+        self.isOpaque = opaque
         self.rendersAsynchronously = rendersAsynchronously
         self.onDraw = onDraw
     }

@@ -84,7 +84,8 @@ private extension TestRenderer {
                     colorAlpha]
         }
 
-        return profile.rgbColors(rawColors).map { $0.headroom(headroom.potential) }
+        return profile.rgbColors(rawColors)
+            .map { $0.headroom(headroom.potential) }
     }
 
     var hsvColors: [Color] {
@@ -102,6 +103,7 @@ private extension TestRenderer {
                     colorAlpha]
         }
 
-        return profile.hsvColors(rawColors).map { $0.headroom(headroom.potential) }
+        return profile.hsvColors(rawColors)
+            .map { $0.headroom(headroom.potential) }
     }
 }

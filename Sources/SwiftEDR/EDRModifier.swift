@@ -16,9 +16,10 @@ public struct EDRModifier: ViewModifier {
     /// The follower will publish changes to headroom attributes.
     private let headroomFollower: HeadroomFollower
 
-    /// Initialize a modifier for the given profile.
-    /// * pollFrequency controls how often the `headroom` environment value is updated, in Hz. High frequency polling is not recommended. Default: 1Hz.
-    /// * If high frequency headroom updates are required, EDRCanvas is the better choice.
+    /// Initialize a modifier for a given profile.
+    /// - Parameters:
+    ///   - profile: Selects an EDR Profile.
+    ///   - pollFrequency: Dontrols how often the `headroom` environment value is updated, in Hz. High frequency polling is not recommended. Default: 1Hz. If high frequency headroom updates are required, EDRCanvas is the better choice.
     public init(profile: Profile, pollFrequency: CGFloat = 1) {
         self.profile = profile
         self.headroomFollower = HeadroomFollower(profile: profile, pollfrequency: pollFrequency)

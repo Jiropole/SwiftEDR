@@ -12,6 +12,7 @@ import SwiftUI
 public struct HeadroomAsserter: ViewModifier {
     /// EDR profile configuration.
     public let profile: Profile
+    
     /// EDR headroom information for use with tone mapping.
     public let headroom: Headroom
 
