@@ -28,7 +28,6 @@ public struct EDRCanvas: View {
     @Environment(\.edrProfile) private var profile
     @Environment(\.edrHeadroom) private var headroom
 
-
     /// Initialize an EDR Canvas with a given draw function.
     /// - Parameters:
     ///   - opaque: Same as Canvas parameter `opaque`.

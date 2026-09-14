@@ -5,11 +5,9 @@
 //  Created by Jesse Hemingway on 9/9/26.
 //
 
-
 import SwiftUI
 
 /// Helper class that polls the current screen's headroom info and updates `headroom`.
-/// For performance reasons, it may be unwise to use high polling frequencies.
 @Observable
 public final class HeadroomFollower {
     private let profile: Profile
@@ -69,9 +67,9 @@ public final class HeadroomFollower {
 #else
         var headroom = profile.mode == .hdr ? Headroom.readHeadroom() ?? .init() : .init()
 #endif
-        return Headroom(current: min(headroom.current, profile.maximumHeadroom),
-                        potential: min(headroom.current, profile.maximumHeadroom),
-                        reference: min(headroom.current, profile.maximumHeadroom))
+        return Headroom(current: min(headroom.current, profile.maxHeadroom),
+                        potential: min(headroom.current, profile.maxHeadroom),
+                        reference: min(headroom.current, profile.maxHeadroom))
     }
 
     @objc private func updateHeadroom(notification: Notification? = nil) {

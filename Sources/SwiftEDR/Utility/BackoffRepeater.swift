@@ -5,7 +5,6 @@
 //  Created by Jesse Hemingway on 9/13/26.
 //
 
-
 import SwiftUI
 
 /// Manages execution of a function with an adaptive callback frequency.

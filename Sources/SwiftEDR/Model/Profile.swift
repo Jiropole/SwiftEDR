@@ -16,8 +16,8 @@ public struct Profile: BaseModel {
     /// Controls optional bloom effect.
     public var bloom: Bloom
 
-    /// If set, constrains the maximum requested headroom. This is reflected in both current and potential headroom.
-    public var maximumHeadroom: CGFloat
+    /// Constrains the maximum requested headroom. This is reflected in both current and potential headroom reported to the app.
+    public var maxHeadroom: CGFloat
 
     /// Flags that control special or debugging behaviors.
     public var options: Options
@@ -28,10 +28,10 @@ public struct Profile: BaseModel {
     ///   - bloom: Controls bloom effect.
     ///   - maximumHeadroom: Limits the maximum current and potential headroom reported to the application.
     ///   - options: Controls special rendering options.
-    public init(mode: Mode, bloom: Bloom, maximumHeadroom: CGFloat = 1024, options: Options = []) {
+    public init(mode: Mode, bloom: Bloom, maxHeadroom: CGFloat = 1024, options: Options = []) {
         self.mode = mode
         self.bloom = bloom
-        self.maximumHeadroom = maximumHeadroom
+        self.maxHeadroom = maxHeadroom
         self.options = options
     }
 }
@@ -195,7 +195,7 @@ extension Profile {
         public static let bloomHighlightsOnly = Self(rawValue: 1 << 0)
         /// When enabled with HDR mode, tones down the HDR brightness relative to nearby SDR content.
         public static let constrainedHDR = Self(rawValue: 1 << 1)
-        /// If set, enables default tone mapping. Experimental.
+        /// If set, enables default tone mapping. Experimental, not all that useful at the moment.
         public static let toneMapDefault = Self(rawValue: 1 << 2)
 
         public var isBloomHighlightsOnly: Bool {

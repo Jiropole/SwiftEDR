@@ -5,10 +5,9 @@
 //  Created by Jesse Hemingway on 9/13/26.
 //
 
-
 import SwiftUI
 
-/// For HDR modes, assert that the app wants as much headroom as possible.
+/// For HDR modes, assert that the app wants as much headroom as possible. Relies on app also using .headroom() on its colors.
 public struct HeadroomAsserter: ViewModifier {
     /// EDR profile configuration.
     public let profile: Profile
