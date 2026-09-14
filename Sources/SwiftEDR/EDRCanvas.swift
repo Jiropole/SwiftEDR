@@ -13,8 +13,7 @@ public struct EDRCanvas: View {
     /// Callback function used by the package client to render the canvas.
     public typealias DrawFunction = (_ context: inout GraphicsContext,
                                      _ size: CGSize,
-                                     _ profile: Profile,
-                                     _ headroom: Headroom) -> Void
+                                     _ palette: Palette) -> Void
 
     /// Same as Canvas parameter `opaque`.
     private let isOpaque: Bool
@@ -25,8 +24,7 @@ public struct EDRCanvas: View {
     /// Draw function called when the canvas needs to be rendered.
     private let onDraw: DrawFunction
 
-    @Environment(\.edrProfile) private var profile
-    @Environment(\.edrHeadroom) private var headroom
+    @Environment(\.palette) private var palette
 
     /// Initialize an EDR Canvas with a given draw function.
     /// - Parameters:
@@ -43,17 +41,16 @@ public struct EDRCanvas: View {
 
     public var body: some View {
         Canvas(opaque: isOpaque,
-               colorMode: profile.mode.renderMode,
+               colorMode: palette.profile.mode.renderMode,
                rendersAsynchronously: rendersAsynchronously) { context, size in
 
             // Read intantaneous headroom for use with HDR mode.
-            let headroom = profile.mode == .hdr ? (Headroom.readHeadroom() ?? self.headroom) : .init()
+            let headroom = palette.profile.mode == .hdr ? (Headroom.readHeadroom() ?? palette.headroom) : .init()
 
             // Draw using the current profile, or else default to SDR.
             onDraw(&context,
                    size,
-                   profile,
-                   headroom)
+                   .init(profile: palette.profile, headroom: headroom))
         }
     }
 }

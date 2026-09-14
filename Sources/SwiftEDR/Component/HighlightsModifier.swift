@@ -9,9 +9,8 @@ import SwiftUI
 
 /// Extracts highlights from the content view, i.e. where luminosity exceeds threshold.
 public struct HighlightsModifier: ViewModifier {
-    /// EDR profile configuration.
-    public let profile: Profile
 
+    @Environment(\.palette) private var palette
     @State private var viewRadius: CGFloat = 20
 
     public func body(content: Content) -> some View {
@@ -19,9 +18,9 @@ public struct HighlightsModifier: ViewModifier {
             // Extract bright areas according to bloom attributes.
             .layerEffect(
                 ShaderLibrary.bundle(Bundle.module).extractOverbrights(
-                    .float(profile.bloom.threshold),
-                    .float(profile.bloom.kneeWidth),
-                    .float(profile.bloom.intensity)
+                    .float(palette.profile.bloom.threshold),
+                    .float(palette.profile.bloom.kneeWidth),
+                    .float(palette.profile.bloom.intensity)
                 ),
                 maxSampleOffset: .zero)
 
@@ -29,7 +28,7 @@ public struct HighlightsModifier: ViewModifier {
             .scaleEffect(0.25)
 
             // Blur the downsampled highlights.
-            .blur(radius: profile.bloom.radius * viewRadius / 4.0, opaque: false)
+            .blur(radius: palette.profile.bloom.radius * viewRadius / 4.0, opaque: false)
 
             // Restore original scale
             .scaleEffect(4.0)
@@ -44,6 +43,8 @@ public struct HighlightsModifier: ViewModifier {
     }
 
     var multiplierColor: Color {
-        profile.rgbColor([profile.bloom.intensity, profile.bloom.intensity, profile.bloom.intensity, 1])
+        palette.rgbColor([palette.profile.bloom.intensity,
+                          palette.profile.bloom.intensity,
+                          palette.profile.bloom.intensity, 1])
     }
 }

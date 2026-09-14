@@ -81,11 +81,10 @@ private extension ContentView {
     }
 
     func edrCanvasViewWithProfile(_ profile: Profile, elapsed: TimeInterval) -> some View {
-        EDRCanvas(opaque: true) { context, size, profile, headroom in
+        EDRCanvas(opaque: true) { context, size, palette in
             TestRenderer(ctx: context,
                          size: size,
-                         profile: profile,
-                         headroom: headroom,
+                         palette: palette,
                          elapsed: elapsed,
                          colorAlpha: config.colorAlpha,
                          objectCount: Int(config.objectCount),
@@ -99,8 +98,7 @@ private extension ContentView {
         Canvas(opaque: true) { context, size in
             TestRenderer(ctx: context,
                          size: size,
-                         profile: .Defaults.sdr,
-                         headroom: .init(),
+                         palette: .init(profile: profile, headroom: .init()),
                          elapsed: elapsed,
                          colorAlpha: config.colorAlpha,
                          objectCount: Int(config.objectCount),

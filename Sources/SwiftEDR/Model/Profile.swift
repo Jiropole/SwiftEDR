@@ -19,7 +19,7 @@ public struct Profile: BaseModel {
     /// Constrains the maximum requested headroom. This is reflected in both current and potential headroom reported to the app.
     public var maxHeadroom: CGFloat
 
-    /// Flags that control special or debugging behaviors.
+    /// Flags that control special rendering behaviors.
     public var options: Options
 
     /// Initialize an EDR Profile.
@@ -36,55 +36,9 @@ public struct Profile: BaseModel {
     }
 }
 
-// MARK: Color Convenience
+// MARK: Setup Convenience
 
 extension Profile {
-    /// Convenience function to get a color space appropriate color from RGBA components.
-    public func rgbColor(_ components: [CGFloat]) -> Color {
-        Self.rgbColor(components, space: mode.colorSpace)
-    }
-
-    /// Convenience function to get color space appropriate colors from RGBA components.
-    public func rgbColors(_ colors: [[CGFloat]]) -> [Color] {
-        let space = mode.colorSpace
-        return colors.map { Self.rgbColor($0, space: space) }
-    }
-
-    /// Convenience function to get a color space appropriate color from HSVA components.
-    public func hsvColor(_ components: [CGFloat]) -> Color {
-        Self.hsvColor(components, space: mode.colorSpace)
-    }
-
-    /// Convenience function to get color space appropriate colors from HSVA components.
-    public func hsvColors(_ colors: [[CGFloat]]) -> [Color] {
-        let space = mode.colorSpace
-        return colors.map { Self.hsvColor($0, space: space) }
-    }
-
-    /// Create a color from RGBA components that is calibrated for the color space.
-    public static func rgbColor(_ components: [CGFloat],
-                                space: CGColorSpace) -> Color {
-        guard let cgColor = CGColor(colorSpace: space, components: components) else {
-            return Color(.displayP3, red: components[0], green: components[1],
-                         blue: components[2], opacity: components[3])
-        }
-        return Color(cgColor: cgColor)
-    }
-
-    /// Create a color from HSVA components that is calibrated for the color space.
-    public static func hsvColor(_ components: [CGFloat],
-                                space: CGColorSpace) -> Color {
-        let (hue, sat, val, opa) = (components[0], components[1], components[2], components[3])
-        let p3Color = NativeColor(hue: hue, saturation: sat, brightness: val, alpha: opa)
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        p3Color.getRed(&r, green: &g, blue: &b, alpha: &a)
-        guard let cgColor = CGColor(colorSpace: space, components: [r, g, b, a]) else {
-            return Color(.displayP3, red: components[0], green: components[1],
-                         blue: components[2], opacity: components[3])
-        }
-        return Color(cgColor: cgColor)
-    }
-
     /// A mode-appropriate value for use with with `.allowedDynamicRange` SwiftUI modifier.
     public var relativeDynamicRange: Image.DynamicRange {
         switch mode {
@@ -154,6 +108,7 @@ extension Profile {
         }
     }
 
+    /// Attributes related to the Bloom effect.
     public struct Bloom: BaseModel {
         /// Radius of the bloom as a fraction of view "radius" (the lesser of either dimension).
         public var radius: CGFloat = 0
@@ -177,6 +132,7 @@ extension Profile {
         public static let none = Bloom(radius: 0.0, threshold: 1.0, kneeWidth: 0.0, intensity: 0.0)
     }
 
+    /// Future thing.
     public struct ColorInfo {
         let colorSpace: CGColorSpace
         let bitmapInfo: UInt32
@@ -184,6 +140,7 @@ extension Profile {
         // TODO: Additional support for export encoding...
     }
 
+    /// Special options that can be used to affect rendering.
     public struct Options: OptionSet, BaseModel {
         public let rawValue: Int
 

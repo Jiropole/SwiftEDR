@@ -9,26 +9,26 @@ import SwiftUI
 
 /// Produces a bloom effect on the content view..
 public struct BloomModifier: ViewModifier {
-    /// EDR profile configuration.
-    public let profile: Profile
+    
+    @Environment(\.palette) private var palette
 
     public func body(content: Content) -> some View {
         ZStack {
-            if profile.bloom.radius > 0, profile.bloom.intensity > 0 {
+            if palette.profile.bloom.radius > 0, palette.profile.bloom.intensity > 0 {
                 ZStack {
                     // Layer the unmodified content.
                     content
-                        .opacity(profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
+                        .opacity(palette.profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
 
                     // Extract a highlights layer from the content to be screened on top.
                     content
-                        .modifier(HighlightsModifier(profile: profile))
+                        .modifier(HighlightsModifier())
                 }
                 // Screen highlights layer over content.
                 .blendMode(.plusLighter)
             } else {
                 content
-                    .opacity(profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
+                    .opacity(palette.profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
             }
         }
     }

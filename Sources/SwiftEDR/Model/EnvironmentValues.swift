@@ -8,9 +8,8 @@
 import SwiftUI
 
 extension EnvironmentValues {
-    /// The current SwiftEDR Profile.
-    @Entry public var edrProfile: Profile = .Defaults.hdrBloom
-
-    /// The current SwiftEDR Headroom.
-    @Entry public var edrHeadroom: Headroom = .init()
+    
+    /// Vends EDR state and colors.
+    @Entry public var palette: Palette = .init(profile: .Defaults.hdrBloom,
+                                               headroom: .init())
 }

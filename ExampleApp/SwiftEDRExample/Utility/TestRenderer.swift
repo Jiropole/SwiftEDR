@@ -11,19 +11,18 @@ import SwiftEDR
 struct TestRenderer {
     let context: GraphicsContext
     let size: CGSize
-    let profile: Profile
-    let headroom: Headroom
+    let palette: Palette
     let elapsed: TimeInterval
     let colorAlpha: CGFloat
     let objectCount: Int
     let objectSize: CGFloat
 
-    init(ctx: GraphicsContext, size: CGSize, profile: Profile, headroom: Headroom,
-         elapsed: TimeInterval, colorAlpha: CGFloat, objectCount: Int, objectSize: CGFloat = 50) {
+    init(ctx: GraphicsContext, size: CGSize, palette: Palette,
+         elapsed: TimeInterval, colorAlpha: CGFloat,
+         objectCount: Int, objectSize: CGFloat = 50) {
         self.context = ctx
         self.size = size
-        self.profile = profile
-        self.headroom = headroom
+        self.palette = palette
         self.elapsed = elapsed
         self.colorAlpha = colorAlpha
         self.objectCount = objectCount
@@ -65,7 +64,7 @@ struct TestRenderer {
 
 private extension TestRenderer {
     func osc(_ angle: CGFloat) -> CGFloat {
-        pow((1 + sin(angle)) / 2, 3) * headroom.current
+        pow((1 + sin(angle)) / 2, 3) * palette.headroom.current
     }
 
     var rgbColors: [Color] {
@@ -84,8 +83,7 @@ private extension TestRenderer {
                     colorAlpha]
         }
 
-        return profile.rgbColors(rawColors)
-            .map { $0.headroom(headroom.potential) }
+        return palette.rgbColors(rawColors)
     }
 
     var hsvColors: [Color] {
@@ -103,7 +101,6 @@ private extension TestRenderer {
                     colorAlpha]
         }
 
-        return profile.hsvColors(rawColors)
-            .map { $0.headroom(headroom.potential) }
+        return palette.hsvColors(rawColors)
     }
 }

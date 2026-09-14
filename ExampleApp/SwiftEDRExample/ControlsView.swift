@@ -44,19 +44,19 @@ private extension ControlsView {
         Grid(alignment: .topTrailing, horizontalSpacing: 16, verticalSpacing: 4) {
             GridRow {
                 objectCountControl
-                objectOpacityControl
-                objectSizeControl
+                bloomIntensityControl
+                bloomKneeWidthControl
             }
             GridRow {
-                bloomIntensityControl
+                objectOpacityControl
                 bloomThresholdControl
-                bloomRadiusControl
+                backgroundLevelControl
             }
             GridRow(alignment: .bottom) {
-                backgroundLevelControl
+                objectSizeControl
+                bloomRadiusControl
                 HStack {
                 }
-                bloomKneeWidthControl
             }
         }
     }
@@ -128,7 +128,7 @@ private extension ControlsView {
 
     var bloomThresholdControl: some View {
         attributeSlider {
-            Text("Bloom Thresh: \(formatter.string(from: profile.bloom.threshold as NSNumber)!)")
+            Text("Bloom Threshold: \(formatter.string(from: profile.bloom.threshold as NSNumber)!)")
             Slider(value: $profile.bloom.threshold, in: 0.1...10)
         } reset: {
             profile.bloom.threshold = 1.0

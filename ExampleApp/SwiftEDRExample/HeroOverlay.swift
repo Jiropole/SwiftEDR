@@ -11,8 +11,7 @@ import SwiftEDR
 struct HeroOverlay: View {
     let elapsed: CGFloat
 
-    @Environment(\.edrProfile) private var profile
-    @Environment(\.edrHeadroom) private var headroom
+    @Environment(\.palette) private var palette
 
     var body: some View {
         VStack(spacing: 32) {
@@ -24,7 +23,7 @@ struct HeroOverlay: View {
             }
             .padding(.horizontal, 48)
 
-            Text("EDRModifier on an arbitrary view\nHeadroom: \(headroom.current, specifier: "%.2f") / \(headroom.potential, specifier: "%.2f")")
+            Text("EDRModifier on an arbitrary view\nHeadroom: \(palette.headroom.current, specifier: "%.2f") / \(palette.headroom.potential, specifier: "%.2f")")
                 .multilineTextAlignment(.center)
                 .font(.headline.bold().italic())
                 .foregroundStyle(colorAtElapsed(elapsed))
@@ -44,12 +43,11 @@ struct HeroOverlay: View {
     }
 
     func colorAtElapsed(_ elapsed: CGFloat) -> Color {
-        profile.hsvColor([
+        palette.hsvColor([
             fmod(elapsed / 8, 1), // hue
             0.8 + 0.2 * sin(elapsed * 2 * .pi / 3), // saturation
-            (0.4 + 0.3 * sin(elapsed * 2 * .pi / 5)) * (1 + headroom.current) / 2, // value/brightness
+            (0.4 + 0.3 * sin(elapsed * 2 * .pi / 5)) * (1 + palette.headroom.current) / 2, // value/brightness
             1.0 // opacity
         ])
-        .headroom(headroom.potential)
     }
 }

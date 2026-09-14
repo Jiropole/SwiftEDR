@@ -26,21 +26,21 @@ public struct EDRModifier: ViewModifier {
     }
 
     public func body(content: Content) -> some View {
-        content
+        let palette = Palette(profile: profile, headroom: headroomFollower.headroom)
+        return content
             // Add any bloom effect.
-            .modifier(BloomModifier(profile: profile))
+            .modifier(BloomModifier())
 
             // Add any tone mapping effect (needs work).
-            .modifier(ToneMapModifier(profile: profile, headroom: headroomFollower.headroom))
+            .modifier(ToneMapModifier())
 
             // Assert any current request for elevated headroom, which can be disrupted by shaders in the pipeline.
-            .modifier(HeadroomAsserter(profile: profile, headroom: headroomFollower.headroom))
+            .modifier(HeadroomAsserter())
 
             // Adjust requested dynamic range according to mode and options.
             .allowedDynamicRange(profile.relativeDynamicRange)
 
             // Add profile and headroom to environment.
-            .environment(\.edrProfile, profile)
-            .environment(\.edrHeadroom, headroomFollower.headroom)
+            .environment(\.palette, palette)
     }
 }
