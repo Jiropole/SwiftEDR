@@ -110,6 +110,12 @@ extension Profile {
 
     /// Attributes related to the Bloom effect.
     public struct Bloom: BaseModel {
+        public enum Mode: BaseModel {
+            case luminance
+            case color
+        }
+        /// The bloom threshold mode.
+        public var mode: Mode
         /// Radius of the bloom as a fraction of view "radius" (the lesser of either dimension), in the range [0, 1].
         public var radius: CGFloat
         /// Color value threshold at which the bloom triggers.
@@ -121,7 +127,9 @@ extension Profile {
         /// A value which controls to what degree bloom threshold varies with changing headroom, in the range [0, 1].
         public var adaptivity: CGFloat
 
-        public init(radius: CGFloat = 0, threshold: CGFloat = 1, kneeWidth: CGFloat = 0, intensity: CGFloat = 0, adaptivity: CGFloat = 0.1) {
+        public init(mode: Mode = .luminance, radius: CGFloat = 0, threshold: CGFloat = 1,
+                    kneeWidth: CGFloat = 0, intensity: CGFloat = 0, adaptivity: CGFloat = 0.1) {
+            self.mode = mode
             self.radius = radius
             self.threshold = threshold
             self.kneeWidth = kneeWidth

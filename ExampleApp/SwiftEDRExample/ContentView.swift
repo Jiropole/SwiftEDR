@@ -116,7 +116,15 @@ private extension ContentView {
                 } label: {
                     Image(systemName: "ladybug.fill")
                         .foregroundStyle(profile.options.isBloomHighlightsOnly ? Color.white : Color.black)
-                        .font(.title)
+                        .font(.title3)
+                }
+                // Button to toggle bloom mode.
+                Button {
+                    profile.bloom.mode = profile.bloom.mode == .color ? .luminance: .color
+                } label: {
+                    Image(systemName: "circle.hexagonpath.fill")
+                        .foregroundStyle(profile.bloom.mode == .color ? Color.white : Color.black)
+                        .font(.title3)
                 }
                 // Button to toggle experimental tone mapping. Disabled for now.
 //                Button {
@@ -124,7 +132,7 @@ private extension ContentView {
 //                } label: {
 //                    Image(systemName: "camera.filters")
 //                        .foregroundStyle(profile.options.isToneMapDefault ? Color.white : Color.black)
-//                        .font(.title)
+//                        .font(.title3)
 //                }
                 // Button to toggle tone mapping.
                 Button {
@@ -132,7 +140,7 @@ private extension ContentView {
                 } label: {
                     Image(systemName: "rectangle.compress.vertical")
                         .foregroundStyle(profile.options.isConstrainedHDR ? Color.white : Color.black)
-                        .font(.title)
+                        .font(.title3)
                 }
 
                 // Button to display hero overlay.
@@ -141,7 +149,7 @@ private extension ContentView {
                 } label: {
                     Image(systemName: "photo")
                         .foregroundStyle(config.isShowingHero ? Color.white : Color.black)
-                        .font(.title)
+                        .font(.title3)
                 }
 
                 Button {

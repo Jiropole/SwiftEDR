@@ -9,16 +9,16 @@
 #include <SwiftUI/SwiftUI.h>
 using namespace metal;
 
-[[ stitchable ]] half4 extractOverbrights(float2 position,
-                                          SwiftUI::Layer layer,
-                                          float threshold,
-                                          float kneeWidth,
-                                          float premultiplier) {
+[[ stitchable ]] half4 extractLuminanceOverbrights(float2 position,
+                                                   SwiftUI::Layer layer,
+                                                   float threshold,
+                                                   float kneeWidth,
+                                                   float premultiplier) {
     // Grab the sharp base canvas pixel
-    half4 coreColor = layer.sample(position) * premultiplier;
+    half4 color = layer.sample(position) * premultiplier;
 
     // Determine perceived luminance using standard P3/sRGB weights
-    half luminance = dot(coreColor.rgb, half3(0.2126h, 0.7152h, 0.0722h));
+    half luminance = dot(color.rgb, half3(0.2126h, 0.7152h, 0.0722h));
 
     // Smoothstep soft knee into full bloom weight
     float lowBound = threshold - kneeWidth;
@@ -26,8 +26,28 @@ using namespace metal;
     half bloomWeight = half(smoothstep(lowBound, highBound, float(luminance)));
 
     // Final value is the original color scaled by bloom weight.
-    return coreColor.rgba * bloomWeight;
+    return color.rgba * bloomWeight;
 }
+
+[[ stitchable ]] half4 extractComponentOverbrights(float2 position,
+                                                   SwiftUI::Layer layer,
+                                                   float threshold,
+                                                   float kneeWidth,
+                                                   float premultiplier) {
+    // Grab the sharp base canvas pixel
+    half4 color = layer.sample(position) * premultiplier;
+
+    // Smoothstep soft knee into full bloom weight
+    float lowBound = threshold - kneeWidth;
+    float highBound = threshold + kneeWidth;
+    half3 bloomWeight = smoothstep(lowBound, highBound, color.rgb);
+
+    // Final value is the original color scaled by bloom weight.
+    return half4(color.rgb * bloomWeight, color.a);
+}
+
+
+
 
 [[ stitchable ]] half4 defaultToneMap(float2 position,
                                       SwiftUI::Layer layer,

@@ -16,13 +16,7 @@ public struct HighlightsModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
             // Extract bright areas according to bloom attributes.
-            .layerEffect(
-                ShaderLibrary.bundle(Bundle.module).extractOverbrights(
-                    .float(palette.effectiveBloomThreshold),
-                    .float(palette.profile.bloom.kneeWidth),
-                    .float(palette.profile.bloom.intensity)
-                ),
-                maxSampleOffset: .zero)
+            .layerEffect(highlightsShader, maxSampleOffset: .zero)
 
             // Downsample to reduce GPU overhead.
             .scaleEffect(0.25)
@@ -40,6 +34,22 @@ public struct HighlightsModifier: ViewModifier {
             .onGeometryChange(for: CGSize.self, of: \.size) { viewSize in
                 self.viewRadius = min(viewSize.width, viewSize.height)
             }
+    }
+
+    var highlightsShader: Shader {
+        if palette.profile.bloom.mode == .luminance {
+            return ShaderLibrary.bundle(Bundle.module).extractLuminanceOverbrights(
+                .float(palette.effectiveBloomThreshold),
+                .float(palette.profile.bloom.kneeWidth),
+                .float(palette.profile.bloom.intensity)
+            )
+        } else {
+            return ShaderLibrary.bundle(Bundle.module).extractComponentOverbrights(
+                .float(palette.effectiveBloomThreshold),
+                .float(palette.profile.bloom.kneeWidth),
+                .float(palette.profile.bloom.intensity)
+            )
+        }
     }
 
     var multiplierColor: Color {

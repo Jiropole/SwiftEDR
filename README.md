@@ -162,10 +162,11 @@ The current bloom implementation isolates luminous highlights in order to blur a
 * Radius, which controls how far highlights may spread.
 * Intensity, which controls how much the Bloom result is mixed back into the content.
 * Threshold, which controls how bright a color needs to be to contribute to the effect.
+* Mode, selecting between luminosity or component based thresholding. The latter results in a more saturated result, allowing e.g. blues to glow as much as greens. 
 * Knee, which controls how quickly or smoothly color values beyond the threshold contribute. 
 * Adaptivity, which controls to what degree the bloom threshold increases with the current headroom.
 
-These are best dialed to desired aesthetics, as there is no one size fits all Bloom effect. Experiment with these parameters using the Example App described above.
+These are best dialed to desired aesthetics, as there is no one size fits all Bloom effect. For example, `.component` mode tends to increase Bloom contribution, and parameters might need to be tuned around such decisions. Experiment with these parameters using the Example App described above.
 
 Note that as headroom increases, it may be necessary to adjust the bloom threshold or knee to avoid bloom blowout – a nasty business. Adaptivity helps automate this adjustment, but the app could also opt to set adaptivity to 0.0 and manually tune the threshold.
 

@@ -23,9 +23,8 @@ public struct BloomModifier: ViewModifier {
                     // Extract a highlights layer from the content to be screened on top.
                     content
                         .modifier(HighlightsModifier())
+                        .blendMode(.plusLighter)
                 }
-                // Screen highlights layer over content.
-                .blendMode(.plusLighter)
             } else {
                 content
                     .opacity(palette.profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
