@@ -12,7 +12,7 @@ struct ControlsView: View {
     struct Config {
         var objectCount: CGFloat = 1600
         var objectSize: CGFloat = 0.135
-        var colorAlpha: CGFloat = 0.25
+        var colorAlpha: CGFloat = 0.15
         var backgroundLevel: CGFloat = 0.03
         var isSwiftVisible: Bool = false
         var isShowingHero: Bool = false

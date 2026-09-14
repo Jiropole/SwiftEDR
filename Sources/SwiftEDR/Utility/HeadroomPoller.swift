@@ -18,7 +18,10 @@ public final class HeadroomPoller {
     public var headroom: Headroom
 
     @ObservationIgnored
-    private var timer: Timer? = nil
+    private var repeater: BackoffRepeater? = nil
+
+    @ObservationIgnored
+    private var lastChange: Date = .distantPast
 
     /// `pollfrequency` = 0 disables polling.
     public init(profile: Profile, pollfrequency: TimeInterval = 1.0) {
@@ -26,7 +29,7 @@ public final class HeadroomPoller {
 
         // Initialize with current screen headroom.
         self.headroom = Self.supportedHeadroom(forMode: profile.mode)
-        print("Mode \(profile.mode): \(headroom)")
+//        print("Mode \(profile.mode): \(headroom)")
         guard pollfrequency > 0 else { return }
 
 #if os(iOS)
@@ -36,13 +39,20 @@ public final class HeadroomPoller {
             .addObserver(self, selector: #selector(updateHeadroom),
                          name: UIScreen.brightnessDidChangeNotification, object: nil)
 
-        // As a fallback, we start a poll timer.
-        let interval: TimeInterval = 1.0 / pollfrequency
-        self.timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            self?.updateHeadroom()
+        // As a fallback, we use a backoff repeater to poll for changes.
+        let maxInterval: TimeInterval = 1.0 / pollfrequency
+        self.repeater = BackoffRepeater(delayRange: 0.04...maxInterval)
+        self.repeater?.execute { [weak self] in
+            guard let self = self else { return true }
+            let headroom = Self.supportedHeadroom(forMode: profile.mode)
+            if self.headroom != headroom {
+                self.headroom = headroom
+                // Don't backoff so long as values keep changing quickly.
+                return false
+            } else {
+                return true
+            }
         }
-        // Try to keep the overhead low.
-        self.timer?.tolerance = interval * 0.5
 
 #elseif os(macOS)
         // In AppKit there is a convenient notification whenever headroom changes.
@@ -50,11 +60,6 @@ public final class HeadroomPoller {
             .addObserver(self, selector: #selector(updateHeadroom),
                          name: NativeApplication.didChangeScreenParametersNotification, object: nil)
 #endif
-    }
-
-    deinit {
-        // It is not necessary to unregister for notifications.
-        self.timer?.invalidate()
     }
 
     private static func supportedHeadroom(forMode mode: Profile.Mode) -> Headroom {
@@ -68,7 +73,7 @@ public final class HeadroomPoller {
     @objc private func updateHeadroom(notification: Notification? = nil) {
         let headroom = Self.supportedHeadroom(forMode: self.profile.mode)
         guard headroom != self.headroom else { return }
-        print("Mode \(profile.mode): \(headroom)")
+//        print("Mode \(profile.mode): \(headroom)")
         self.headroom = headroom
     }
 }
