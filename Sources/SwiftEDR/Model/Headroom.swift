@@ -24,6 +24,7 @@ public struct Headroom: BaseModel {
         self.reference = reference
     }
 
+    /// Attempt to retrieve the raw physical headroom attributes.
     public static func readHeadroom() -> Headroom? {
 #if os(iOS)
         guard let screen = (NativeApplication.shared.connectedScenes
@@ -39,5 +40,17 @@ public struct Headroom: BaseModel {
         // Not aware of any way to get this value for VisionOS, or if it even applies.
         return Headroom()
 #endif
+    }
+
+    /// Retrieve headroom attributes appropriate for the given profile.
+    public static func readHeadroomForProfile(_ profile: Profile) -> Headroom {
+#if os(visionOS)
+        var headroom = profile.mode == .hdr ? Headroom(current: 10, potential: 10, reference: 0) : .init()
+#else
+        var headroom = profile.mode == .hdr ? Headroom.readHeadroom() ?? .init() : .init()
+#endif
+        return Headroom(current: min(headroom.current, profile.maxHeadroom),
+                        potential: min(headroom.current, profile.maxHeadroom),
+                        reference: min(headroom.current, profile.maxHeadroom))
     }
 }
