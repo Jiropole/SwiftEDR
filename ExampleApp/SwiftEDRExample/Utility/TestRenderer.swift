@@ -33,7 +33,7 @@ struct TestRenderer {
         var context = self.context
         context.blendMode = .plusLighter
 
-        let colors = rgbColors
+        let colors = hsvColors
         let objectsPerColor = objectCount / rgbColors.count
         let heightPerColor = (size.height - objectSize) / CGFloat(rgbColors.count + 1)
         let viewRadius = min(size.width, size.height) / 2
@@ -63,11 +63,11 @@ struct TestRenderer {
 }
 
 private extension TestRenderer {
-    func osc(_ angle: CGFloat) -> CGFloat {
-        pow((1 + sin(angle)) / 2, 3) * palette.headroom.current
-    }
 
     var rgbColors: [Color] {
+        func osc(_ angle: CGFloat) -> CGFloat {
+            pow((1 + sin(angle)) / 2, 3) * palette.headroom.current
+        }
 
         let rawColors: [[CGFloat]] = (0..<8).map { index in
             let uIndex = CGFloat(index) / 8
@@ -87,6 +87,9 @@ private extension TestRenderer {
     }
 
     var hsvColors: [Color] {
+        func osc(_ angle: CGFloat) -> CGFloat {
+            pow((1 + sin(angle)) / 2, 1.5) * palette.headroom.current
+        }
         let rawColors: [[CGFloat]] = (0..<8).map { index in
             let uIndex = CGFloat(index) / 8
             let basePhase = 2 * .pi * uIndex
@@ -95,7 +98,7 @@ private extension TestRenderer {
 
             let phaseWobble: CGFloat = 0.12 + sin(timePhase * 0.01 + basePhase) * 0.12
 
-            return [0.5 + 0.5 * sin(timePhase),
+            return [fmod(elapsed * frequency, 1),
                     0.5 + 0.5 * sin(timePhase + phaseWobble * 2 * .pi),
                     osc(timePhase),
                     colorAlpha]

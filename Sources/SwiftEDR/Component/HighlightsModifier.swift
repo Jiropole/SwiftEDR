@@ -18,7 +18,7 @@ public struct HighlightsModifier: ViewModifier {
             // Extract bright areas according to bloom attributes.
             .layerEffect(
                 ShaderLibrary.bundle(Bundle.module).extractOverbrights(
-                    .float(palette.profile.bloom.threshold),
+                    .float(palette.effectiveBloomThreshold),
                     .float(palette.profile.bloom.kneeWidth),
                     .float(palette.profile.bloom.intensity)
                 ),

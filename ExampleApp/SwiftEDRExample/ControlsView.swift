@@ -45,18 +45,17 @@ private extension ControlsView {
             GridRow {
                 objectCountControl
                 bloomIntensityControl
-                bloomKneeWidthControl
+                bloomRadiusControl
             }
             GridRow {
                 objectOpacityControl
                 bloomThresholdControl
-                backgroundLevelControl
+                bloomKneeWidthControl
             }
             GridRow(alignment: .bottom) {
                 objectSizeControl
-                bloomRadiusControl
-                HStack {
-                }
+                bloomAdaptivityControl
+                backgroundLevelControl
             }
         }
     }
@@ -132,6 +131,15 @@ private extension ControlsView {
             Slider(value: $profile.bloom.threshold, in: 0.1...10)
         } reset: {
             profile.bloom.threshold = 1.0
+        }
+    }
+
+    var bloomAdaptivityControl: some View {
+        attributeSlider {
+            Text("Bloom Adaptivity: \(formatter.string(from: profile.bloom.adaptivity as NSNumber)!)")
+            Slider(value: $profile.bloom.adaptivity, in: 0.0...1)
+        } reset: {
+            profile.bloom.adaptivity = 0.1
         }
     }
 

@@ -16,6 +16,12 @@ public struct Palette: BaseModel {
         self.profile = profile
         self.headroom = headroom
     }
+
+    // Used by bloom effect; takes adaptivity and current headroom into account.
+    public var effectiveBloomThreshold: CGFloat {
+        guard profile.mode == .hdr else { return profile.bloom.threshold }
+        return profile.bloom.threshold + (headroom.current - profile.bloom.threshold) * profile.bloom.adaptivity
+    }
 }
 
 // MARK: Color Convenience

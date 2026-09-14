@@ -110,20 +110,23 @@ extension Profile {
 
     /// Attributes related to the Bloom effect.
     public struct Bloom: BaseModel {
-        /// Radius of the bloom as a fraction of view "radius" (the lesser of either dimension).
-        public var radius: CGFloat = 0
+        /// Radius of the bloom as a fraction of view "radius" (the lesser of either dimension), in the range [0, 1].
+        public var radius: CGFloat
         /// Color value threshold at which the bloom triggers.
-        public var threshold: CGFloat = 1
+        public var threshold: CGFloat
         /// Width of the soft knee applied around the threshold point.
-        public var kneeWidth: CGFloat = 0
-        /// Opacity of the bloom effect.
-        public var intensity: CGFloat = 0
+        public var kneeWidth: CGFloat
+        /// Opacity of the bloom effect, in the range [0, 1].
+        public var intensity: CGFloat
+        /// A value which controls to what degree bloom threshold varies with changing headroom, in the range [0, 1].
+        public var adaptivity: CGFloat
 
-        public init(radius: CGFloat, threshold: CGFloat, kneeWidth: CGFloat, intensity: CGFloat) {
+        public init(radius: CGFloat = 0, threshold: CGFloat = 1, kneeWidth: CGFloat = 0, intensity: CGFloat = 0, adaptivity: CGFloat = 0.1) {
             self.radius = radius
             self.threshold = threshold
             self.kneeWidth = kneeWidth
             self.intensity = intensity
+            self.adaptivity = adaptivity
         }
 
         public static let hdr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.2, intensity: 1.0)

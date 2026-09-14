@@ -76,6 +76,7 @@ AnimatedHeroView()
     .modifier(EDRModifier(profile: .Defaults.hdrBloom))
 ```
 
+Note that not all SwiftUI views will handle HDR colors properly. I haven't done much testing, but it may be most of them. However, it does work for shapes. So one workaround is to display a shape with HDR color, masked to the target view.
 
 ### EDRCanvas View
 
@@ -149,9 +150,9 @@ This can result in startlingly bright colors popping out of an otherwise-SDR dis
 
 Beyond aesthetic choices, there are also two important ways to globally limit how much headroom is requested, and they can be used together:
 * For strict control, try setting an arbitrary number lower than the screen potential for Profile attribute `maxHeadroom`. Even 3X is noticeably brighter than surrounding UI! 
-* Alternately or combined, for enabling system-determined headroom throttling, include `.constrainedHDR` with Profile `options`.
+* Alternately or combined, to enable system-determined headroom throttling, include `.constrainedHDR` with Profile `options`.
 
-Increased headroom doesn't change the brightness of a view on its own. Apps must take advantage of the headroom by choosing or blending colors that exceed 1.0, up to, or past the headroom. Color values near or over the headroom are clamped or tone mapped back into the display color space. When selecting colors, use the current Palette to get colors in the appropriate color space.
+Increased headroom doesn't change the brightness of a view on its own. Apps must take advantage of the headroom by choosing or blending colors that exceed 1.0, up to, or past the headroom. Color values near or over the headroom are clamped or tone mapped back into the display color space. When selecting colors, use the current Palette to get colors in the appropriate color space and dynamic range.
 
 
 ### Bloom Effect
@@ -162,10 +163,11 @@ The current bloom implementation isolates luminous highlights in order to blur a
 * Intensity, which controls how much the Bloom result is mixed back into the content.
 * Threshold, which controls how bright a color needs to be to contribute to the effect.
 * Knee, which controls how quickly or smoothly color values beyond the threshold contribute. 
+* Adaptivity, which controls to what degree the bloom threshold increases with the current headroom.
 
 These are best dialed to desired aesthetics, as there is no one size fits all Bloom effect. Experiment with these parameters using the Example App described above.
 
-Note that as headroom increases, it may be necessary to adjust the bloom threshold or knee to avoid bloom blowout – a nasty business. Perhaps this could be automated, but I saw no obvious approach that didn't take away aesthetic choice. 
+Note that as headroom increases, it may be necessary to adjust the bloom threshold or knee to avoid bloom blowout – a nasty business. Adaptivity helps automate this adjustment, but the app could also opt to set adaptivity to 0.0 and manually tune the threshold.
 
 
 ## Color Design Note
