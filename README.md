@@ -11,11 +11,11 @@ A clean, convenient and performant mini-framework to bring EDR (extended dynamic
 
 SwiftEDR simplifies the somewhat intricate details related to using extended and high dynamic range bit depths and color spaces within SwiftUI. It also offers a convenient Bloom effect.
 
-This package is built entirely in SwiftUI, and is hand coded. AI was used sparsely to assist in sifting through assorted documentation.
+This package is built entirely in SwiftUI, and is hand coded. AI was used sparsely for topic research and comprehension.
 
 #### Supported Modes 
 
-Let's face it, you're here for HDR, which is admittedly the most interesting thing about this package. But HDR is most impressive when you can have something to compare it to. Plus the other modes are useful if you want to vary your display parameters according to user focus.
+Let's face it, you're here for HDR, which is admittedly the most interesting thing about this package. But HDR is most impressive when you can have something to compare it to. Plus the other modes may be useful to vary display parameters according to user focus.
 
 * SDR – Standard Dynamic Range. SDR mode results in the same color range as standard views, but with the advantage that the Bloom effect can be applied.
 * EDR – Extended Dynamic Range. EDR mode uses the standard color range, but with high precision color math when applied to Canvas views, and support for the Bloom effect.  
@@ -113,7 +113,7 @@ Profile is composed of the following attributes:
     * .edr - Extended Dynamic Range (normal color range + bloom)
     * .hdr – High Dynamic Range (extended color range + more)
 * `bloom`, described below.
-* `maximumHeadroom` – Constrains the maximum requested headroom in HDR mode. Defaults to 1024, but 4 to 12 are also reasonable values, in practice.
+* `maximumHeadroom` – Constrains the maximum requested headroom in HDR mode. Defaults to 1024, but 4 to 12 are also reasonable values, in practice. Use this for more specific control than offered by the .constrainedHDR option.
 * `options', any of:
     * .bloomHighlightsOnly – show the bloom effect alone, hiding the content, for tuning.
     * .constrainedHDR – enable to constrain the maximum HDR brightness, for example to avoid overpowering adjacent UI or content elements. 
@@ -165,9 +165,7 @@ This visual gravy comes with another price: as color values grow "hotter", there
 
 It is best to take the current headroom into account when choosing colors, as shown above, but also when considering how colors may become hotter with certain blend modes. 
 
-While this package can be used to quickly add a cinematic effect to tastefully chosen elements of any SwiftUI application, best results are achieved using content colors designed around the advantages and challenges of HDR.
-
-Please do see the Example App to view practical application of these principles in code.
+While this package can be used to quickly add a cinematic effect to tastefully chosen elements of any SwiftUI application, best results are achieved using content colors designed around the advantages and challenges of HDR. Open the Example App to view practical application of these principles in code.
 
  
  # License
