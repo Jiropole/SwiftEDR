@@ -10,7 +10,7 @@ import SwiftUI
 /// Extracts highlights from the content view, i.e. where luminosity exceeds threshold.
 public struct HighlightsModifier: ViewModifier {
 
-    @Environment(\.palette) private var palette
+    @Environment(\.edrPalette) private var palette
     @State private var viewRadius: CGFloat = 20
 
     public func body(content: Content) -> some View {

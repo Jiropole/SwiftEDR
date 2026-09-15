@@ -11,7 +11,7 @@ import SwiftEDR
 struct HeroOverlay: View {
     let elapsed: CGFloat
 
-    @Environment(\.palette) private var palette
+    @Environment(\.edrPalette) private var palette
 
     var body: some View {
         ZStack {

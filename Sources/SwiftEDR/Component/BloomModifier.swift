@@ -10,7 +10,7 @@ import SwiftUI
 /// Produces a bloom effect on the content view..
 public struct BloomModifier: ViewModifier {
     
-    @Environment(\.palette) private var palette
+    @Environment(\.edrPalette) private var palette
 
     public func body(content: Content) -> some View {
         ZStack {

@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "app-icon-fodder.png",
+      "filename" : "appface3-1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -69,7 +69,7 @@
       "size" : "256x256"
     },
     {
-      "filename" : "app-icon-fodder-512.png",
+      "filename" : "appface3-512.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"

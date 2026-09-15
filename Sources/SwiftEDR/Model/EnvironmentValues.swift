@@ -10,6 +10,6 @@ import SwiftUI
 extension EnvironmentValues {
     
     /// Vends EDR state and colors.
-    @Entry public var palette: Palette = .init(profile: .Defaults.hdrBloom,
-                                               headroom: .init())
+    @Entry public var edrPalette: Palette = .init(profile: .Defaults.hdrBloom,
+                                                  headroom: .init())
 }

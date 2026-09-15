@@ -24,7 +24,7 @@ public struct EDRCanvas: View {
     /// Draw function called when the canvas needs to be rendered.
     private let onDraw: DrawFunction
 
-    @Environment(\.palette) private var palette
+    @Environment(\.edrPalette) private var palette
 
     /// Initialize an EDR Canvas with a given draw function.
     /// - Parameters:

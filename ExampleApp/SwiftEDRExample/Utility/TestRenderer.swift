@@ -71,11 +71,10 @@ private extension TestRenderer {
 
         let rawColors: [[CGFloat]] = (0..<8).map { index in
             let uIndex = CGFloat(index) / 8
-            let basePhase = 2 * .pi * uIndex
+            let stepPhase = 2 * .pi * uIndex
             let frequency = 0.1 + uIndex * 0.05
             let timePhase = 2 * .pi * elapsed * frequency
-
-            let phaseWobble: CGFloat = 0.12 + sin(timePhase * 0.01 + basePhase) * 0.12
+            let phaseWobble: CGFloat = 0.12 + sin(timePhase * 0.01 + stepPhase) * 0.12
 
             return [osc(timePhase),
                     osc(timePhase + phaseWobble * 2 * .pi),
@@ -92,14 +91,13 @@ private extension TestRenderer {
         }
         let rawColors: [[CGFloat]] = (0..<8).map { index in
             let uIndex = CGFloat(index) / 8
-            let basePhase = 2 * .pi * uIndex
-            let frequency = 0.1 + uIndex * 0.05
-            let timePhase = 2 * .pi * elapsed * frequency
+            let stepPhase = 2 * .pi * uIndex
+            let frequency = 0.08 + uIndex * 0.05
+            let timePhase = stepPhase + 2 * .pi * elapsed * frequency
+            let phaseWobble: CGFloat = 0.12 + sin(timePhase * 0.01) * 0.12
 
-            let phaseWobble: CGFloat = 0.12 + sin(timePhase * 0.01 + basePhase) * 0.12
-
-            return [fmod(elapsed * frequency, 1),
-                    0.5 + 0.5 * sin(timePhase + phaseWobble * 2 * .pi),
+            return [fmod(uIndex + elapsed * 0.08, 1),
+                    0.6 + 0.4 * sin(timePhase + phaseWobble * 2 * .pi),
                     osc(timePhase),
                     colorAlpha]
         }

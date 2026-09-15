@@ -20,7 +20,7 @@ public struct Palette: BaseModel {
     // Used by bloom effect; takes adaptivity and current headroom into account.
     public var effectiveBloomThreshold: CGFloat {
         guard profile.mode == .hdr else { return profile.bloom.threshold }
-        return profile.bloom.threshold + (headroom.current - profile.bloom.threshold) * profile.bloom.adaptivity
+        return profile.bloom.threshold + (headroom.current - 1) * profile.bloom.adaptivity
     }
 }
 
@@ -32,15 +32,15 @@ extension Palette {
         Self.rgbColor(components, space: profile.mode.colorSpace, headroom: headroom)
     }
 
+    /// Convenience function to get a color space appropriate color from HSVA components.
+    public func hsvColor(_ components: [CGFloat]) -> Color {
+        Self.hsvColor(components, space: profile.mode.colorSpace, headroom: headroom)
+    }
+
     /// Convenience function to get color space appropriate colors from RGBA components.
     public func rgbColors(_ colors: [[CGFloat]]) -> [Color] {
         let space = profile.mode.colorSpace
         return colors.map { Self.rgbColor($0, space: space, headroom: headroom) }
-    }
-
-    /// Convenience function to get a color space appropriate color from HSVA components.
-    public func hsvColor(_ components: [CGFloat]) -> Color {
-        Self.hsvColor(components, space: profile.mode.colorSpace, headroom: headroom)
     }
 
     /// Convenience function to get color space appropriate colors from HSVA components.

@@ -10,7 +10,7 @@ import SwiftUI
 /// Produces a tone mapping effect on the content view..
 public struct ToneMapModifier: ViewModifier {
     
-    @Environment(\.palette) private var palette
+    @Environment(\.edrPalette) private var palette
 
     public func body(content: Content) -> some View {
         ZStack {

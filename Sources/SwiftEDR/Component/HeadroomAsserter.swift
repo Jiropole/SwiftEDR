@@ -10,7 +10,7 @@ import SwiftUI
 /// For HDR modes, assert that the app wants as much headroom as possible. Works best with app also using .headroom() on its colors.
 public struct HeadroomAsserter: ViewModifier {
     
-    @Environment(\.palette) private var palette
+    @Environment(\.edrPalette) private var palette
 
     public func body(content: Content) -> some View {
         content

@@ -40,7 +40,12 @@ public struct EDRModifier: ViewModifier {
             // Adjust requested dynamic range according to mode and options.
             .allowedDynamicRange(profile.relativeDynamicRange)
 
+#if os(visionOS)
+            // Cue to deemphasize surrounding brightness on VisionOS.
+            .preferredSurroundingsEffect(profile.mode == .hdr ? .dark : nil)
+#endif
+
             // Add profile and headroom to environment.
-            .environment(\.palette, palette)
+            .environment(\.edrPalette, palette)
     }
 }
