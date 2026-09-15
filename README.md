@@ -6,18 +6,19 @@ SwiftEDR is entirely hand coded in SwiftUI and MSL. AI fulfilled a limited role 
 ## Platform Support
 * iOS: Full support for iOS 26+, but high dynamic range not available on simulators.
 * MacOS: Full support for MacOS 26+, but high dynamic range not available on simulators.
-* VisionOS: Full-ish support for VisionOS 26+. I only say "full-ish" because there may be other VisionOS amenities I'm not aware of.
+* VisionOS: Full-ish support for VisionOS 26+. I only say "full-ish" because there may be VisionOS amenities I'm not aware of.
 
 ## Features
 SwiftEDR simplifies the somewhat intricate details related to using extended and high dynamic range bit depths and color spaces within SwiftUI. It also offers a convenient Bloom effect.
 
 ### Supported Modes 
-You may be thinking "show me the HDR already" – which is admittedly the most interesting thing about this package. But HDR is most impressive when you have something to compare it to. Plus the other modes may be useful to vary display parameters according to user focus. It is also a nice practice to revert to non HDR modes when energy conservation is important or when not justified by present content or available headroom.
 * SDR – Standard Dynamic Range. SDR mode results in the same color range as standard views, but with the advantage that the Bloom effect can be applied.
 * EDR – Extended Dynamic Range. EDR mode uses the standard color range, but with high precision color math when applied to Canvas views, and support for the Bloom effect.  
 * HDR – High Dynamic Range. HDR mode offers an extended color range, high precision color math for Canvas views, Bloom support, and the ability to display significantly brighter colors on compatible hardware.
 
-Here are some examples of SDR, EDR and HDR, noting that images can only simulate actual display results.
+You may be thinking "show me the HDR already" – which is admittedly the most interesting thing about this package. But HDR is most impressive when you have something to compare it to. Plus the other modes may be useful to vary display parameters according to user focus. It is also a nice practice to revert to non HDR modes when energy conservation is important or when not justified by present content or available headroom.
+
+Here are some examples of SDR, EDR and HDR, noting that images can only simulate actual display results. Screenshotting HDR can easily look like blown out crap.
 
 <p align="center">
 <img width="250" height="270" alt="swiftedr-sdr-mode" src="https://github.com/user-attachments/assets/45e22ca4-ae32-4ea8-8660-11e92041de86" />
@@ -26,19 +27,21 @@ Here are some examples of SDR, EDR and HDR, noting that images can only simulate
 </p>
 
 #### What It Isn't
-SwiftEDR doesn't magically make any view brighter and more vivid – that still takes careful design decisions. It also isn't a color production studio in a package. It merely organizes the sprawling details around bit depths and dynamic ranges into a concise API surface, so you can focus on tuning tuning EDR for your own use cases, a without leaving the speed and comfort of SwiftUI. 
+SwiftEDR doesn't magically make any view brighter and more vivid – that still takes careful design decisions. It also isn't a color production studio in a package. It merely organizes the sprawling details around bit depths and dynamic ranges into a concise API surface, so you can focus on tuning tuning EDR for your own use cases, without leaving the speed and comfort of SwiftUI. 
 
 ### Example App
 Take a peek at what kind of visual results you can expect by opening the SwiftEDRExample app and running the interactive demo on Mac or a physical device. A picture is worth a thousand words when it comes to visual gravy.
 
 The demo UI controls are a good way to study the visual behavior of the various profile modes and effects. To access all controls, run on an iPad or Mac device.
 
-You are unlikely to see any difference between SDR and EDR modes, but rest assured the color math is much higher precision for the latter, and can be useful for detailed blending or when used with shaders. You should definitely see a difference in HDR mode, as the demo app will request maximum headroom, and the drawing algorithm will use colors that are able to display far hotter than the SDR maximum.
+There is a bonus mode "SDR-NL", which displays like a typical SwiftUI canvas, using the nonlinear P3 color space. This may be perfectly adequate for many purposes, but higher bit depth math goes hand in hand with linear color space, which is why SwiftEDR SDR mode will be brighter but lower contrast out of the box. This can be countered with careful use of extended color ranges. (In the future, this package could also be made more flexible for customization or custom shaders in the pipeline.)
+
+You are unlikely to see any difference between (linear) SDR and EDR modes, but rest assured the color math is much higher precision for the latter, and can be useful for detailed blending or when used with shaders. You should definitely see a difference in HDR mode, as the demo app will request maximum headroom, and the drawing algorithm will use colors that are able to display far hotter than the SDR maximum.
 
 The main display area is covered with an example of an `EDRCanvas`, i.e. a SwiftEDR-powered Canvas view. For the hovering icons, above it, a legend:
 * "ladybug" – Displays the bloom effect by itself, in order to more easily tune it.
 * "dot-wheel" - Enables component bloom thresholding, as opposed to luminance thresholding.
-* "constrain" - Enables system-contrained HDR headroom; for example, to avoid overpowering adjacent content or to save energy.
+* "constrain" - Enables system-throttled HDR headroom; for example, to avoid overpowering adjacent content or to save energy.
 * "photo" - Displays an example of applying `EDRModifier` to arbitrary, non-Canvas views.
 * "back-circle" – Reset all parameters.
 * "pause/play" – Play or pause animation. 
@@ -66,7 +69,7 @@ AnimatedHeroView()
     .modifier(EDRModifier(profile: .Defaults.hdrBloom))
 ```
 
-Sadly, most SwiftUI views will not deal gracefully with HDR colors. However, it does work for shapes, so one workaround is to display a shape using HDR color, masked to the target view. I'll try to improve this "naked" use case when time permits. 
+Unfortunately, most SwiftUI views will not deal gracefully with HDR colors. However, it does work for shapes, so one workaround is to display a shape using HDR color, masked to the target view. Improving the powers of this modifier is in the queue.
 
 ### EDRCanvas View
 The original intent behind this package! This view is a drop-in replacement for SwiftUI Canvas that supports generative content that is adaptive to wider dynamic ranges. But why bother, you ask? Why not just use that sweet modifier on a Canvas?
