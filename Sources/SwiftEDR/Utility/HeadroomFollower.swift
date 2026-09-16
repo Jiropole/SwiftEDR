@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Helper class that polls the current screen's headroom info and updates `headroom`.
-@Observable
+@MainActor @Observable
 public final class HeadroomFollower {
     private let profile: Profile
 

@@ -8,9 +8,10 @@
 import SwiftUI
 
 /// Manages execution of a function with an adaptive callback frequency.
-public class BackoffRepeater {
+@MainActor
+public final class BackoffRepeater {
     /// Callback returns true if the timer interval should back off (slow down), else false if it should continue or speed up.
-    public typealias FunctionBody = () -> Bool
+    public typealias FunctionBody = @MainActor () -> Bool
 
     public let delayRange: ClosedRange<TimeInterval>
     public let tolerance: TimeInterval
@@ -28,7 +29,7 @@ public class BackoffRepeater {
         scheduleTimerWithBody(body)
     }
 
-    deinit {
+    isolated deinit {
         debounceTimer?.invalidate()
     }
 }
@@ -37,7 +38,9 @@ private extension BackoffRepeater {
     func scheduleTimerWithBody(_ body: @escaping FunctionBody) {
         debounceTimer?.invalidate()
         debounceTimer = Timer.scheduledTimer(withTimeInterval: nextDelay, repeats: false, block: { [weak self] _ in
-            self?.timerFiredWithBody(body)
+            Task {
+                await self?.timerFiredWithBody(body)
+            }
         })
         debounceTimer?.tolerance = tolerance
     }

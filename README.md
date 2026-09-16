@@ -12,9 +12,9 @@ SwiftEDR is entirely hand coded in SwiftUI and MSL. AI fulfilled a limited role 
 SwiftEDR simplifies the somewhat intricate details related to using extended and high dynamic range bit depths and color spaces within SwiftUI. It also offers a convenient Bloom effect.
 
 ### Supported Modes 
-* SDR – Standard Dynamic Range. SDR mode results in the same color range as standard views, but with the advantage that the Bloom effect can be applied.
-* EDR – Extended Dynamic Range. EDR mode uses the standard color range, but with high precision color math when applied to Canvas views, and support for the Bloom effect.  
-* HDR – High Dynamic Range. HDR mode offers an extended color range, high precision color math for Canvas views, Bloom support, and the ability to display significantly brighter colors on compatible hardware.
+* **SDR** – Standard Dynamic Range. SDR mode results in the same color range as standard views, but with the advantage that the Bloom effect can be applied.
+* **EDR** – Extended Dynamic Range. EDR mode uses the standard color range, but with high precision color math when applied to Canvas views, and support for the Bloom effect.  
+* **HDR** – High Dynamic Range. HDR mode offers an extended color range, high precision color math for Canvas views, Bloom support, and the ability to display significantly brighter colors on compatible hardware.
 
 You may be thinking "show me the HDR already" – which is admittedly the most interesting thing about this package. But HDR is most impressive when you have something to compare it to. Plus the other modes may be useful to vary display parameters according to user focus. It is also a nice practice to revert to non HDR modes when energy conservation is important or when not justified by present content or available headroom.
 
@@ -91,21 +91,6 @@ Note that you apply the EDRModifier in just the same way as for any other view.
  
 ## Core Concepts
 
-### Profile Model 
-The `Profile` model configures the primary EDR mode along with related behaviors and effects. Use `Profile.Defaults` to quickly select a preset, or customize your own effects and display attributes. It may be desirable to tune the Bloom effect, in particular, to your specific content and desired aesthetics.
-
-Profile is composed of the following attributes:
-* `mode`, one of:
-    * `.sdrNonLinear`: Standard Dynamic Range with nonlinear P3 color value in the range [0, 1] + bloom. This will look the same as a basic, unadorned SwiftUI Canvas.
-    * `.sdr`: Standard Dynamic Range with linear P3 color values in the range [0, 1]. This will look brighter than an unadorned SwiftUI Canvas.
-    * `.edr`: Extended Dynamic Range with linear P3 color values in the range [0, 1]. This will normally look just like `.sdr`, but computed at higher bit depth.
-    * `.hdr`: High Dynamic Range with with linear P3 color values in the range [0, ∞). If display is compatible and headroom is available, colors may display many times brighter than SDR.
-* `bloom`, described below.
-* `maxHeadroom` – Constrains the maximum requested headroom in HDR mode. Even values as low as 2-5 can be striking. Use this for more specific control than offered by the .constrainedHDR option.
-* `options`, any of:
-    - `.bloomHighlightsOnly` – show the bloom effect alone, hiding the content, for tuning.
-    * `.constrainedHDR` – enable to enable system-throttled HDR brightness, for example to avoid overpowering adjacent content or to reduce energy usage. 
-
 ### Palette Model
 The `Palette` model has two roles:
 * Wraps all EDR state into a single object that can be easily passed via the environment and queried to implement adaptive behaviors.  
@@ -133,6 +118,21 @@ var hdrBlue: Color {
 }
 ```
 
+### Profile Model 
+The `Profile` model configures the primary EDR mode along with related behaviors and effects. Use `Profile.Defaults` to quickly select a preset, or customize your own effects and display attributes. It may be desirable to tune the Bloom effect, in particular, to your specific content and desired aesthetics.
+
+Profile is composed of the following attributes:
+* `mode`, one of:
+    * `.sdrNonLinear`: Standard Dynamic Range with nonlinear P3 color value in the range [0, 1] + bloom. This will look the same as a basic, unadorned SwiftUI Canvas.
+    * `.sdr`: Standard Dynamic Range with linear P3 color values in the range [0, 1]. This will look brighter than an unadorned SwiftUI Canvas.
+    * `.edr`: Extended Dynamic Range with linear P3 color values in the range [0, 1]. This will normally look just like `.sdr`, but computed at higher bit depth.
+    * `.hdr`: High Dynamic Range with with linear P3 color values in the range [0, ∞). If display is compatible and headroom is available, colors may display many times brighter than SDR.
+* `bloom`, described below.
+* `maxHeadroom` – Constrains the maximum requested headroom in HDR mode. Even values as low as 2-5 can be striking. Use this for more specific control than offered by the .constrainedHDR option.
+* `options`, any of:
+    - `.bloomHighlightsOnly` – show the bloom effect alone, hiding the content, for tuning.
+    * `.constrainedHDR` – enable to enable system-throttled HDR brightness, for example to avoid overpowering adjacent content or to reduce energy usage. 
+
 ### Headroom Model
 The `Headroom` model is composed of the following attributes:
 * `current`: The currently available headroom; continuously variable.
@@ -145,9 +145,9 @@ For HDR, this value can range far past 1.0. For an older phone, the limit might 
 
 This can result in startlingly bright colors popping out of an otherwise-SDR display. For this reason, consider reining in this power. On the aesthetic side, HDR was really meant to let smaller areas of the screen pop, or for transient effects like lightning – not for firehosing the viewer with photons! 
 
-Beyond aesthetic choices, there are also two important ways to globally limit how much headroom is requested, and they can be used together:
+Beyond aesthetic choices, there are two important ways to globally limit how much headroom is requested, and they can be used together:
 * For strict control, try setting an arbitrary number lower than the screen potential for Profile attribute `maxHeadroom`. Even 3X is noticeably brighter than surrounding UI! 
-* Alternately or combined, to enable system-determined headroom throttling, include `.constrainedHDR` with Profile `options`.
+* To enable system-determined headroom throttling, include `.constrainedHDR` with Profile `options`.
 
 Increased headroom doesn't change the brightness of a view on its own. Apps must take advantage of the headroom by choosing or blending colors that exceed 1.0, up to, or past the headroom. Color values near or over the headroom are clamped or tone mapped back into the display color space. When selecting colors, use the current Palette to get colors in the appropriate color space and dynamic range.
 
@@ -159,11 +159,11 @@ The current bloom implementation isolates luminous highlights in order to blur a
 * `radius`: how far highlights may spread.
 * `intensity`: how much the Bloom result is mixed back into the content.
 * `threshold`: how bright a color needs to be to contribute to the effect.
-* `mode`: selects between luminosity or component based thresholding. The latter results in a more saturated effect, allowing e.g. blues to glow as much as greens. 
-* `knee`: how quickly or smoothly color values beyond the threshold contribute. 
+* `mode`: selects between `luminosity` or `color` based thresholding. The latter results in a more saturated effect, allowing e.g. blues to glow as much as greens. 
+* `knee`: how quickly or smoothly color values around the threshold contribute. 
 * `adaptivity`: to what degree the bloom threshold increases with the current headroom.
 
-These are best dialed to desired aesthetics, as there is no one size that fits all. For example in HDR, colors values will naturally blow past a fixed threshold; or `.component` Bloom mode tends to significantly increase Bloom contribution. Thus, parameters will typically need to be tuned around such decisions. On the upside, one may experiment with these parameters using the Example App described above, or use the same flags the example app uses to tune EDR effects within any client application.
+These are best dialed to desired aesthetics, as there is no one size that fits all. For example in HDR, colors values will naturally blow past a fixed threshold; or `.component` Bloom mode tends to significantly increase Bloom contribution. Thus, parameters will typically need to be tuned around such decisions. On the upside, one may experiment with these parameters using the Example App described above.
 
 Note that as headroom increases, it may be necessary to adjust the bloom threshold or knee to avoid bloom blowout – a nasty business. Adaptivity helps automate this adjustment, but the app could also opt to set adaptivity to 0.0 and manually tune the threshold.
 

@@ -17,6 +17,8 @@ public struct Palette: BaseModel {
         self.headroom = headroom
     }
 
+    public static let `default`: Palette = .init(profile: .Defaults.edr, headroom: .init())
+
     // Used by bloom effect; takes adaptivity and current headroom into account.
     public var effectiveBloomThreshold: CGFloat {
         guard profile.mode == .hdr else { return profile.bloom.threshold }
