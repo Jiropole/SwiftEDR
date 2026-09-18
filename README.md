@@ -32,15 +32,14 @@ SwiftEDR doesn't magically make any view brighter and more vivid – that still
 ### Example App
 Take a peek at what kind of visual results you can expect by opening the SwiftEDRExample app and running the interactive demo on Mac or a physical device. The demo UI controls are a good way to study the visual behavior of the various profile modes and effects. To access all controls, run on an iPad or Mac device.
 
-There is a bonus mode "SDR-NL", which displays like a typical SwiftUI canvas, using the nonlinear P3 color space. This may be perfectly adequate for many purposes, but correct blending or other color math goes hand in hand with linear color space, which is why SwiftEDR SDR mode will be brighter but lower contrast out of the box. This can be countered with careful use of extended color ranges. (In the future, this package could also be made more flexible for customization or custom shaders in the pipeline.)
-
-You are unlikely to see any difference between (linear) SDR and EDR modes. You should definitely see a difference in HDR mode, as the demo app will request maximum headroom, and the drawing algorithm will use colors far hotter than the SDR maximum.
+There may be some difference between SDR and EDR modes with nonlinear color space (the default). You should definitely see a difference in HDR mode, as the demo app will request maximum headroom, and the drawing algorithm will use colors far hotter than the SDR maximum.
 
 The main display area is covered with an example of an `EDRCanvas`, i.e. a SwiftEDR-powered Canvas view. For the hovering icons, above it, a legend:
 * "ladybug" – Displays the bloom effect by itself, in order to more easily tune it.
 * "dot-wheel" - Enables component bloom thresholding, as opposed to luminance thresholding.
 * "constrain" - Enables system-throttled HDR headroom; for example, to avoid overpowering adjacent content or to save energy.
-* "photo" - Displays an example of applying `EDRModifier` to arbitrary, non-Canvas views.
+* "diagonal" - Enables linear color space, which tends to make dark areas brighter with lower contrast.
+"photo" - Displays an example of applying `EDRModifier` to arbitrary, non-Canvas views.
 * "back-circle" – Reset all parameters.
 * "pause/play" – Play or pause animation. 
 
@@ -130,8 +129,9 @@ Profile is composed of the following attributes:
 * `bloom`, described below.
 * `maxHeadroom` – Constrains the maximum requested headroom in HDR mode. Even values as low as 2-5 can be striking. Use this for more specific control than offered by the .constrainedHDR option.
 * `options`, any of:
-    - `.bloomHighlightsOnly` – show the bloom effect alone, hiding the content, for tuning.
-    * `.constrainedHDR` – enable to enable system-throttled HDR brightness, for example to avoid overpowering adjacent content or to reduce energy usage. 
+    * `.constrainedHDR` – enables system-throttled HDR brightness, for example to avoid overpowering adjacent content or to reduce energy usage. 
+    * `.linearColorSpace` – uses linear color space, which tends to make dark areas brighter with lower contrast, which is better for math-based color. The default is nonlinear, which is better for perceptual color. 
+    * `.bloomHighlightsOnly` – show the bloom effect alone, hiding the content, for tuning.
 
 ### Headroom Model
 The `Headroom` model is composed of the following attributes:

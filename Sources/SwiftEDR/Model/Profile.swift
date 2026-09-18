@@ -39,12 +39,32 @@ public struct Profile: BaseModel {
 // MARK: Setup Convenience
 
 extension Profile {
+    /// A colorspace appropriate for the current mode and options.
+    public var colorSpace: CGColorSpace {
+        switch mode {
+        case  .hdr, .edr:
+            return CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)!
+        case .sdr:
+            return options.isLinearColorSpace ? CGColorSpace(name: CGColorSpace.linearDisplayP3)! : CGColorSpace(name: CGColorSpace.displayP3)!
+        }
+    }
+
+    /// A rendering mode appropriate for the curent mode and options.
+    public var renderMode: ColorRenderingMode {
+        switch mode {
+        case .hdr, .edr:
+            return .extendedLinear
+        case .sdr:
+            return options.isLinearColorSpace ? .linear : .nonLinear
+        }
+    }
+
     /// A mode-appropriate value for use with with `.allowedDynamicRange` SwiftUI modifier.
     public var relativeDynamicRange: Image.DynamicRange {
         switch mode {
         case .hdr:
             return options.contains(.constrainedHDR) ? .constrainedHigh : .high
-        case .edr, .sdr, .sdrNonlinear:
+        case .edr, .sdr:
             return .standard
         }
     }
@@ -62,50 +82,10 @@ extension Profile {
     public enum Mode: BaseModel {
         /// Standard color range and bit depth with linear color.
         case sdr
-        /// Standard color range and bit depth with nonlinear color (displayP3).
-        case sdrNonlinear
         /// Extended color range and bit depth for precise color math, displayed in the standard SRGB color range.
         case edr
         /// Extended color range and bit depth for precise color math displayed in an extended HDR color range with higher contrast and absolute brightness.
         case hdr
-
-        public var colorSpace: CGColorSpace {
-            switch self {
-            case  .hdr, .edr:
-                return CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)!
-            case .sdr:
-                return CGColorSpace(name: CGColorSpace.linearDisplayP3)!
-            case .sdrNonlinear:
-                return CGColorSpace(name: CGColorSpace.displayP3)!
-            }
-        }
-
-        public var renderMode: ColorRenderingMode {
-            switch self {
-            case .hdr, .edr:
-                return .extendedLinear
-            case .sdr:
-                return .linear
-            case .sdrNonlinear:
-                return .nonLinear
-            }
-        }
-
-        public var colorInfo: ColorInfo {
-            switch self {
-            case .hdr, .edr:
-                return ColorInfo(colorSpace: colorSpace,
-                                 bitmapInfo: (CGImageAlphaInfo.premultipliedLast.rawValue |
-                                              CGImageByteOrderInfo.order16Host.rawValue |
-                                              CGBitmapInfo.floatComponents.rawValue),
-                                 bitsPerComponent: 16)
-            case .sdr, .sdrNonlinear:
-                return ColorInfo(colorSpace: colorSpace,
-                                 bitmapInfo: (CGImageAlphaInfo.premultipliedFirst.rawValue |
-                                              CGImageByteOrderInfo.order32Big.rawValue),
-                                 bitsPerComponent: 8)
-            }
-        }
     }
 
     /// Attributes related to the Bloom effect.
@@ -159,21 +139,28 @@ extension Profile {
             self.rawValue = rawValue
         }
 
-        /// When enabled, only bloom highlights are drawn.
-        public static let bloomHighlightsOnly = Self(rawValue: 1 << 0)
+        /// When enabled, uses a linear colorspace, rather than the default P3 colorspace.
+        public static let linearColorSpace = Self(rawValue: 1 << 0)
         /// When enabled with HDR mode, tones down the HDR brightness relative to nearby SDR content.
         public static let constrainedHDR = Self(rawValue: 1 << 1)
+        /// When enabled, only bloom highlights are drawn.
+        public static let bloomHighlightsOnly = Self(rawValue: 1 << 2)
         /// If set, enables default tone mapping. Experimental, not all that useful at the moment.
-        public static let toneMapDefault = Self(rawValue: 1 << 2)
+        public static let toneMapDefault = Self(rawValue: 1 << 3)
 
-        public var isBloomHighlightsOnly: Bool {
-            get { contains(.bloomHighlightsOnly) }
-            set { if newValue { insert(.bloomHighlightsOnly) } else { remove(.bloomHighlightsOnly) } }
+        public var isLinearColorSpace: Bool {
+            get { contains(.linearColorSpace) }
+            set { if newValue { insert(.linearColorSpace) } else { remove(.linearColorSpace) } }
         }
 
         public var isConstrainedHDR: Bool {
             get { contains(.constrainedHDR) }
             set { if newValue { insert(.constrainedHDR) } else { remove(.constrainedHDR) } }
+        }
+
+        public var isBloomHighlightsOnly: Bool {
+            get { contains(.bloomHighlightsOnly) }
+            set { if newValue { insert(.bloomHighlightsOnly) } else { remove(.bloomHighlightsOnly) } }
         }
 
         public var isToneMapDefault: Bool {
@@ -183,12 +170,10 @@ extension Profile {
     }
 
     public struct Defaults {
-        public static let sdrNonlinear = Profile(mode: .sdrNonlinear, bloom: .none)
         public static let sdr = Profile(mode: .sdr, bloom: .none)
         public static let edr = Profile(mode: .edr, bloom: .none)
         public static let hdr = Profile(mode: .hdr, bloom: .none)
 
-        public static let sdrBloomNonlinear = Profile(mode: .sdrNonlinear, bloom: .sdr)
         public static let sdrBloom = Profile(mode: .sdr, bloom: .sdr)
         public static let edrBloom = Profile(mode: .edr, bloom: .edr)
         public static let hdrBloom = Profile(mode: .hdr, bloom: .hdr)

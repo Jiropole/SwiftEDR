@@ -19,7 +19,6 @@ struct ContentView: View {
         VStack(spacing: 8) {
             Picker("Dynamic Range", selection: .init(get: { profile.mode },
                                                      set: { profile.mode = $0 })) {
-                Text("SDR-NL").tag(Profile.Mode.sdrNonlinear)
                 Text("SDR").tag(Profile.Mode.sdr)
                 Text("EDR").tag(Profile.Mode.edr)
                 Text("HDR").tag(Profile.Mode.hdr)
@@ -143,6 +142,15 @@ private extension ContentView {
                         .font(.title3)
                 }
 
+                // Button to toggle linear color space.
+                Button {
+                    profile.options.isLinearColorSpace.toggle()
+                } label: {
+                    Image(systemName: "stroke.line.diagonal")
+                        .foregroundStyle(profile.options.isLinearColorSpace ? Color.white : Color.black)
+                        .font(.title3)
+                }
+
                 // Button to display hero overlay.
                 Button {
                     config.isShowingHero.toggle()
@@ -156,8 +164,6 @@ private extension ContentView {
                     switch profile.mode {
                     case .sdr:
                         profile = .Defaults.sdrBloom
-                    case .sdrNonlinear:
-                        profile = .Defaults.sdrNonlinear
                     case .edr:
                         profile = .Defaults.edrBloom
                     case .hdr:

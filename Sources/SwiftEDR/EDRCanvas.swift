@@ -41,7 +41,7 @@ public struct EDRCanvas: View {
 
     public var body: some View {
         Canvas(opaque: isOpaque,
-               colorMode: palette.profile.mode.renderMode,
+               colorMode: palette.profile.renderMode,
                rendersAsynchronously: rendersAsynchronously) { context, size in
 
             // Read intantaneous headroom for use with HDR mode.
