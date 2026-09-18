@@ -146,7 +146,7 @@ private extension ContentView {
                 Button {
                     profile.options.isLinearColorSpace.toggle()
                 } label: {
-                    Image(systemName: "stroke.line.diagonal")
+                    Image(systemName: "righttriangle.fill")
                         .foregroundStyle(profile.options.isLinearColorSpace ? Color.white : Color.black)
                         .font(.title3)
                 }

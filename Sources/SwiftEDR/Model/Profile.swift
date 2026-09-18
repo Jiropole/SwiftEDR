@@ -26,9 +26,9 @@ public struct Profile: BaseModel {
     /// - Parameters:
     ///   - mode: Determines color space, bit depth, and dynamic range behaviors.
     ///   - bloom: Controls bloom effect.
-    ///   - maximumHeadroom: Limits the maximum current and potential headroom reported to the application.
+    ///   - maxHeadroom: Limits the maximum current and potential headroom reported to the application. Default: 1024.
     ///   - options: Controls special rendering options.
-    public init(mode: Mode, bloom: Bloom, maxHeadroom: CGFloat = 1024, options: Options = []) {
+    public init(mode: Mode, bloom: Bloom, maxHeadroom: CGFloat = 1024.0, options: Options = []) {
         self.mode = mode
         self.bloom = bloom
         self.maxHeadroom = maxHeadroom
@@ -70,8 +70,8 @@ extension Profile {
     }
 
     /// A convenience function to get a modified (often simplified) version of the profile.
-    public func withBloom(_ bloom: Bloom, options: Options? = []) -> Profile {
-        Profile(mode: self.mode, bloom: bloom, options: options ?? self.options)
+    public func withBloom(_ bloom: Bloom? = nil, options: Options? = []) -> Profile {
+        Profile(mode: self.mode, bloom: bloom ?? self.bloom, options: options ?? self.options)
     }
 }
 
@@ -108,7 +108,7 @@ extension Profile {
         public var adaptivity: CGFloat
 
         public init(mode: Mode = .luminance, radius: CGFloat = 0, threshold: CGFloat = 1,
-                    kneeWidth: CGFloat = 0, intensity: CGFloat = 0, adaptivity: CGFloat = 0.1) {
+                    kneeWidth: CGFloat = 0, intensity: CGFloat = 0, adaptivity: CGFloat = 0.15) {
             self.mode = mode
             self.radius = radius
             self.threshold = threshold
@@ -120,7 +120,7 @@ extension Profile {
         public static let hdr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.2, intensity: 1.0)
         public static let edr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.1, intensity: 1.0)
         public static let sdr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.1, intensity: 1.0)
-        public static let none = Bloom(radius: 0.0, threshold: 1.0, kneeWidth: 0.0, intensity: 0.0)
+        public static let none = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.0, intensity: 0.0)
     }
 
     /// Future thing.
@@ -141,10 +141,13 @@ extension Profile {
 
         /// When enabled, uses a linear colorspace, rather than the default P3 colorspace.
         public static let linearColorSpace = Self(rawValue: 1 << 0)
+
         /// When enabled with HDR mode, tones down the HDR brightness relative to nearby SDR content.
         public static let constrainedHDR = Self(rawValue: 1 << 1)
+
         /// When enabled, only bloom highlights are drawn.
         public static let bloomHighlightsOnly = Self(rawValue: 1 << 2)
+
         /// If set, enables default tone mapping. Experimental, not all that useful at the moment.
         public static let toneMapDefault = Self(rawValue: 1 << 3)
 

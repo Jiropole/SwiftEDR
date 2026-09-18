@@ -139,7 +139,7 @@ private extension ControlsView {
             Text("Bloom Adaptivity: \(formatter.string(from: profile.bloom.adaptivity as NSNumber)!)")
             Slider(value: $profile.bloom.adaptivity, in: 0.0...1)
         } reset: {
-            profile.bloom.adaptivity = 0.1
+            profile.bloom.adaptivity = 0.15
         }
     }
 

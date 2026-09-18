@@ -66,7 +66,7 @@ private extension TestRenderer {
 
     var rgbColors: [Color] {
         func osc(_ angle: CGFloat) -> CGFloat {
-            pow((1 + sin(angle)) / 2, 3) * palette.headroom.current
+            pow((1 + sin(angle)) / 2, 3)
         }
 
         let rawColors: [[CGFloat]] = (0..<8).map { index in
@@ -82,12 +82,12 @@ private extension TestRenderer {
                     colorAlpha]
         }
 
-        return palette.rgbColors(rawColors)
+        return palette.rgbColors(rawColors, boost: palette.headroom.current)
     }
 
     var hsvColors: [Color] {
         func osc(_ angle: CGFloat) -> CGFloat {
-            pow((1 + sin(angle)) / 2, 1.5) * palette.headroom.current
+            pow((1 + sin(angle)) / 2, 1.5)
         }
         let rawColors: [[CGFloat]] = (0..<8).map { index in
             let uIndex = CGFloat(index) / 8
@@ -102,6 +102,6 @@ private extension TestRenderer {
                     colorAlpha]
         }
 
-        return palette.hsvColors(rawColors)
+        return palette.hsvColors(rawColors, boost: palette.headroom.current)
     }
 }

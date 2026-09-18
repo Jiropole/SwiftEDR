@@ -38,8 +38,8 @@ The main display area is covered with an example of an `EDRCanvas`, i.e. a Swift
 * "ladybug" – Displays the bloom effect by itself, in order to more easily tune it.
 * "dot-wheel" - Enables component bloom thresholding, as opposed to luminance thresholding.
 * "constrain" - Enables system-throttled HDR headroom; for example, to avoid overpowering adjacent content or to save energy.
-* "diagonal" - Enables linear color space, which tends to make dark areas brighter with lower contrast.
-"photo" - Displays an example of applying `EDRModifier` to arbitrary, non-Canvas views.
+* "flat-slope" - Enables linear color space, which tends to make dark areas brighter with lower contrast.
+* "photo" - Displays an example of applying `EDRModifier` to arbitrary, non-Canvas views.
 * "back-circle" – Reset all parameters.
 * "pause/play" – Play or pause animation. 
 
@@ -100,7 +100,7 @@ Palette is composed of the following attributes:
 * `headroom`: Continuously variable headroom.
 
 
-Here is an example of using the palette to generate colors calibrated for the mode and dynamic range.
+Here is an example of using the palette to generate colors calibrated for the mode and dynamic range. Note the use of the `boost` parameter when requesting a color. Use this in lieu of premultiplying the color components, to avoid color washout in HDR.
 
 ```swift
 @Environment(\.edrPalette) private var palette
@@ -111,9 +111,10 @@ var sdrBlue: Color {
 }
 
 var hdrBlue: Color {
-    // Safe for use with any profile, and takes advantage of HDR headroom!
-    let hdrPower = max(1, palette.headroom.current * 0.67)
-    return palette.rgbColor([0.1 * hdrPower, 0.2 * hdrPower, 1.0 * hdrPower, 1])    
+    // Do not premultiply color values to take advantage of HDR headroom.
+    // Instead use boost: safe for use with any profile!
+    let hdrPower = palette.headroom.current * 0.67
+    return palette.rgbColor([0.1, 0.2, 1.0, 1], boost: hdrPower)    
 }
 ```
 
@@ -173,10 +174,6 @@ Color design for SDR and EDR are very similar, as the output color ranges are id
 
 HDR color design can take adantage of colors whose component values exceed the maximum SDR display brightness, taking into account the current headroom, to achieve deeper tonal contrast. 
 
-Let's say the current headroom is 12. Some rather crude examples to review:
-* SDR red in RGB: (1, 0, 0). Or, pop-out red in HDR: (10, 0, 0)
-* SDR white in HSV: (0, 0, 1). Or pop-out white in HDR: (0, 0, 10) 
-
 Note that it is NOT necessary to indicate the desired headroom when colors are acquired through the Palette. However, if you create colors yourself, you will want to specify the desired headroom in order to drive demand on the HDR subsystem. For example:
 
 ```swift
@@ -187,9 +184,9 @@ var popoutRed: Color {
 }
 ```
 
-Also of note, as color values grow "hotter", there is the capacity for increased tonal non-linearity. There is no practical upper limit on color component values, because clamping or tone mapping squeezes this range back into expressible pixel values. This non-linearity may be further accentuated when significant Bloom is present. 
+Also beware, as color values grow "hotter", there is the capacity for increased tonal non-linearity. There is no practical upper limit on color component values, because clamping or tone mapping squeezes this range back into expressible pixel values. This non-linearity may be further accentuated when significant Bloom is present. 
 
-It is best to take the current headroom into account when choosing colors, as shown above, but also when considering how colors may become hotter with certain blend modes. 
+It is best to take the current headroom into account when choosing colors, as shown above, but also when considering how colors may become hotter with certain blend modes. Also, always use the `boost` parameter for requesting colors, to avoid color washout in HDR. 
 
 While this package can be used to quickly add a cinematic effect to tastefully chosen elements of any SwiftUI application, best results are achieved using content colors designed around the advantages and challenges of HDR.
  

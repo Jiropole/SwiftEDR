@@ -66,11 +66,9 @@ private extension Palette {
 
     /// Create a color from RGBA components that is calibrated for the color space and headroom.
     func rgbColor(_ components: [CGFloat], space: CGColorSpace, boost: CGFloat = 1.0) -> Color {
-        var components = components.prefix(3).map({ $0 * boost }) + [components[3]]
-        components = (profile.options.isLinearColorSpace || profile.mode == .sdr
-                      ? components
-                      : Self.nonlinearP3Components(components))
-        guard let cgColor = CGColor(colorSpace: space, components: components) else {
+        var rgb = profileCorrectedComponents(components.dropLast())
+        rgb = boostedComponents(rgb, boost: boost)
+        guard let cgColor = CGColor(colorSpace: space, components: rgb + [components[3]]) else {
             return Color(.displayP3, red: components[0], green: components[1],
                          blue: components[2], opacity: components[3])
         }
@@ -78,9 +76,19 @@ private extension Palette {
             .headroom(headroom.potential)
     }
 
-    /// Experimental reintroduction of perceptual tonality to linear magnitude components.
-    static func nonlinearP3Components(_ components: [CGFloat]) -> [CGFloat] {
-        components.prefix(3).map({ extendedGammaToLinear($0) }) + [components[3]]
+    /// Compute boosted components for R, G, B.
+    func boostedComponents(_ components: [CGFloat], boost: CGFloat = 1.0) -> [CGFloat] {
+        guard boost > 1 else { return components }
+        let boosted = components.map({ $0 * boost })
+        return boosted
+    }
+
+    /// Introduce perceptual tonality to linear magnitude components for R, G, B.
+    func profileCorrectedComponents(_ components: [CGFloat]) -> [CGFloat] {
+        guard !profile.options.isLinearColorSpace, profile.mode != .sdr else {
+            return components
+        }
+        return components.map({ Self.extendedGammaToLinear($0) })
     }
 
     /// Inverse sRGB gamma.
