@@ -50,7 +50,7 @@ public struct Headroom: BaseModel {
         var headroom = profile.mode == .hdr ? Headroom.readHeadroom() ?? .init() : .init()
 #endif
         return Headroom(current: min(headroom.current, profile.maxHeadroom),
-                        potential: min(headroom.current, profile.maxHeadroom),
-                        reference: min(headroom.current, profile.maxHeadroom))
+                        potential: min(headroom.potential, profile.maxHeadroom),
+                        reference: min(headroom.reference, profile.maxHeadroom))
     }
 }
