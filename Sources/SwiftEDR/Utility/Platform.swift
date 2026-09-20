@@ -11,8 +11,10 @@ import Foundation
 import UIKit
 public typealias NativeApplication = UIApplication
 public typealias NativeColor = UIColor
+public typealias NativeImage = UIImage
 #elseif os(macOS)
 import AppKit
 public typealias NativeApplication = NSApplication
 public typealias NativeColor = NSColor
+public typealias NativeImage = NSImage
 #endif

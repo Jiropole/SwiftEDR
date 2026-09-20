@@ -9,11 +9,12 @@ import SwiftUI
 import SwiftEDR
 
 struct ContentView: View {
-    @State private var profile: Profile = .Defaults.edrBloom
+    @State private var profile: Profile = .Defaults.edr
     @State private var config: ControlsView.Config = .default
 
     @State private var startDate: Date = Date()
     @State private var pauseDate: Date = Date()
+    @State private var selectedSource: EDRImage.Source?
 
     var body: some View {
         VStack(spacing: 8) {
@@ -26,7 +27,7 @@ struct ContentView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
 
-            generativeArtView
+            sampleContentView
 
             ControlsView(profile: $profile, config: $config)
                 .padding(.horizontal, 16)
@@ -47,33 +48,24 @@ struct ContentView: View {
 // MARK: Canvas Examples
 
 private extension ContentView {
-    var generativeArtView: some View {
+    var sampleContentView: some View {
         TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !config.isAnimating)) { timeline in
             let elapsed = timeline.date.timeIntervalSince(startDate)
 
-            VStack(spacing: 8) {
-                if config.isSwiftVisible {
-                    swiftCanvasView(elapsed: elapsed)
-                        .background(Color(white: config.backgroundLevel))
-                        .clipped()
-                }
+            if config.isShowingExamples {
+                OtherExamplesView(elapsed: elapsed, selectedSource: $selectedSource)
+                    .modifier(EDRModifier(profile: profile))
+            } else {
+                VStack(spacing: 8) {
+                    if config.isSwiftVisible {
+                        swiftCanvasView(elapsed: elapsed)
+                    }
 
-                edrCanvasViewWithProfile(profile, elapsed: elapsed)
-                    .background(Color(white: config.backgroundLevel))
-                    .clipped()
-            }
-            .overlay {
-                if config.isShowingHero {
-                    HeroOverlay(elapsed: elapsed)
-                        .modifier(EDRModifier(profile: profile))
-                        .padding(24)
-                        .background(Color.black)
-                        .clipShape(RoundedRectangle(cornerRadius: 32))
-                        .padding(8)
-
+                    edrCanvasViewWithProfile(profile, elapsed: elapsed)
                 }
             }
         }
+        .background(Color(white: config.backgroundLevel))
         .overlay(alignment: .topTrailing) {
             edrOptionsOverlay
         }
@@ -117,6 +109,7 @@ private extension ContentView {
                         .foregroundStyle(profile.options.isBloomHighlightsOnly ? Color.white : Color.black)
                         .font(.title3)
                 }
+                
                 // Button to toggle bloom mode.
                 Button {
                     profile.bloom.mode = profile.bloom.mode == .color ? .luminance: .color
@@ -125,15 +118,8 @@ private extension ContentView {
                         .foregroundStyle(profile.bloom.mode == .color ? Color.white : Color.black)
                         .font(.title3)
                 }
-                // Button to toggle experimental tone mapping. Disabled for now.
-//                Button {
-//                    profile.options.isToneMapDefault.toggle()
-//                } label: {
-//                    Image(systemName: "camera.filters")
-//                        .foregroundStyle(profile.options.isToneMapDefault ? Color.white : Color.black)
-//                        .font(.title3)
-//                }
-                // Button to toggle tone mapping.
+
+                // Button to toggle constrained HDR.
                 Button {
                     profile.options.isConstrainedHDR.toggle()
                 } label: {
@@ -153,10 +139,10 @@ private extension ContentView {
 
                 // Button to display hero overlay.
                 Button {
-                    config.isShowingHero.toggle()
+                    config.isShowingExamples.toggle()
                 } label: {
                     Image(systemName: "photo")
-                        .foregroundStyle(config.isShowingHero ? Color.white : Color.black)
+                        .foregroundStyle(config.isShowingExamples ? Color.white : Color.black)
                         .font(.title3)
                 }
 

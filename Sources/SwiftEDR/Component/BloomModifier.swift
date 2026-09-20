@@ -14,7 +14,7 @@ public struct BloomModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
         ZStack {
-            if palette.profile.bloom.radius > 0, palette.profile.bloom.intensity > 0 {
+            if palette.profile.bloom.isActive {
                 ZStack {
                     // Layer the unmodified content.
                     content

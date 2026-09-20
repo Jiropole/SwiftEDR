@@ -38,7 +38,7 @@ public struct EDRModifier: ViewModifier {
             .modifier(HeadroomAsserter())
 
             // Adjust requested dynamic range according to mode and options.
-            .allowedDynamicRange(profile.relativeDynamicRange)
+            .allowedDynamicRange(profile.dynamicRange)
 
 #if os(visionOS)
             // Cue to deemphasize surrounding brightness on VisionOS.

@@ -15,7 +15,7 @@ struct ControlsView: View {
         var colorAlpha: CGFloat = 0.25
         var backgroundLevel: CGFloat = 0.03
         var isSwiftVisible: Bool = false
-        var isShowingHero: Bool = false
+        var isShowingExamples: Bool = false
         var isAnimating: Bool = false
 
         static let `default` = Self()

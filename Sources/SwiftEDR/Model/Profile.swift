@@ -28,7 +28,7 @@ public struct Profile: BaseModel {
     ///   - bloom: Controls bloom effect.
     ///   - maxHeadroom: Limits the maximum current and potential headroom reported to the application. Default: 1024.
     ///   - options: Controls special rendering options.
-    public init(mode: Mode, bloom: Bloom, maxHeadroom: CGFloat = 1024.0, options: Options = []) {
+    public init(mode: Mode, bloom: Bloom = .none, maxHeadroom: CGFloat = 1024.0, options: Options = []) {
         self.mode = mode
         self.bloom = bloom
         self.maxHeadroom = maxHeadroom
@@ -60,7 +60,7 @@ extension Profile {
     }
 
     /// A mode-appropriate value for use with with `.allowedDynamicRange` SwiftUI modifier.
-    public var relativeDynamicRange: Image.DynamicRange {
+    public var dynamicRange: Image.DynamicRange {
         switch mode {
         case .hdr:
             return options.contains(.constrainedHDR) ? .constrainedHigh : .high
@@ -70,8 +70,8 @@ extension Profile {
     }
 
     /// A convenience function to get a modified (often simplified) version of the profile.
-    public func withBloom(_ bloom: Bloom? = nil, options: Options? = []) -> Profile {
-        Profile(mode: self.mode, bloom: bloom ?? self.bloom, options: options ?? self.options)
+    public func replacing(mode: Mode? = nil, bloom: Bloom? = nil, options: Options? = []) -> Profile {
+        Profile(mode: mode ?? self.mode, bloom: bloom ?? self.bloom, options: options ?? self.options)
     }
 }
 
@@ -106,6 +106,8 @@ extension Profile {
         public var intensity: CGFloat
         /// A value which controls to what degree bloom threshold varies with changing headroom, in the range [0, 1].
         public var adaptivity: CGFloat
+        /// Indicates whether there is any bloom effect to be computed.
+        public var isActive: Bool { intensity > 0 && radius > 0 }
 
         public init(mode: Mode = .luminance, radius: CGFloat = 0, threshold: CGFloat = 1,
                     kneeWidth: CGFloat = 0, intensity: CGFloat = 0, adaptivity: CGFloat = 0.15) {
