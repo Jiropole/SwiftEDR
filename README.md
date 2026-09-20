@@ -18,13 +18,16 @@ SwiftEDR simplifies the somewhat intricate details related to using extended and
 
 You may be thinking "show me the HDR already" – which is admittedly the most interesting thing about this package. But HDR is most impressive when you have something to compare it to. Plus the other modes may be useful to vary display parameters according to user focus. It is also a nice practice to revert to non HDR modes when energy conservation is important or when not justified by present content or available headroom.
 
-Here are some examples of SDR, EDR and HDR, noting that images can only simulate actual display results.
+Here are some examples of SDR, EDR and HDR on generative graphics, noting that images can only simulate actual display results.
 
 <p align="center">
 <img width="250" height="270" alt="swiftedr-sdr-mode" src="https://github.com/user-attachments/assets/45e22ca4-ae32-4ea8-8660-11e92041de86" />
 <img width="250" height="270" alt="swiftedr-edr-mode" src="https://github.com/user-attachments/assets/fe98b027-3e02-44e3-ac02-0fb767d358ae" />
 <img width="250" height="270" alt="swiftedr-hdr-mode" src="https://github.com/user-attachments/assets/8656e5ff-d3d9-4750-8757-769df3f158ca" />
 </p>
+
+And here is an equally fake rendition of the same image in SDR versus HDR.
+
 
 #### What It Isn't
 SwiftEDR doesn't magically make any view brighter and more vivid – that still takes careful design decisions. It also isn't a color production studio in a package. It merely organizes the sprawling details around bit depths and dynamic ranges into a concise API surface, so you can focus on tuning EDR for your own use cases, without leaving the speed and comfort of SwiftUI. 
@@ -57,9 +60,10 @@ import SwiftEDR
 ```
 
 ## Usage
-There are three steps to properly leverage this package:
-* Apply the `EDRModifier` view modifier to any standard or custom SwiftUI view, including `EDRCanvas`.
+There are a few ways to leverage this package:
 * Replace instances of SwiftUI's `Canvas` with `EDRCanvas`. 
+* Replace instances of SwiftUI's `Image` with `EDRImage` for cross-platform display of data-based images. 
+* Apply the `EDRModifier` view modifier to any standard or custom SwiftUI view, including `EDRCanvas`.
 * Acquire all drawing colors from the environment `edrPalette`, or the `palette` passed to the EDRCanvas `onDraw` function.
 
 ### EDRModifier View Modifier
@@ -91,7 +95,16 @@ TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { time
 }
 ```
 
-Note that you apply the EDRModifier in just the same way as for any other view. 
+### EDRImage View
+This view makes it easy to display SDR or HDR images from data in a cross platform way. See OtherExamplesView.swift in the example app for more implementation details, or see HDR Still Image Support for other image-related support.
+
+```swift
+let imageSource: EDRImage.Source
+
+var body: some View {
+    EDRImage(source: selectedSource)
+}
+```
  
 ## Core Concepts
 
@@ -218,35 +231,29 @@ case .sdr:
 }
 ```
 
-### Adaptive SwiftUI Rendering
-Use SwiftEDR to gracefully ramp up a target image based on source file configuration and active screen headroom.
+### Cross Platform Image Display
+Use SwiftEDR to display SDR or HDR images from data in a cross platform way. See OtherExamplesView.swift in the example app for more details.
 
 ```swift
-let imageData: Data
+let imageSource: EDRImage.Source
 
-// Here for iOS, where MacOS is quite similar. 
 var body: some View {
-    VStack {
-        if let uiImage = UIImage(data: imageData) {
-            Image(uiImage: uiImage)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                // Unlock EDR headroom if the format supports it
-                .modifier(EDRModifier(profile: .init(mode: imageData.edrImageFormat.defaultMode)))
-        }
-    }
+    EDRImage(source: selectedSource)
 }
 ```
+
 
 ### Native Layer Configurations (AppKit vs UIKit)
 If your app maps imagery using AppKit views, UIKit views, or metal-driven rendering environments, pass SwiftEDR parameters directly down to your rendering layer context:
 
 ```swift
+let imageSource: EDRImage.Source
+
 // For macOS (AppKit / NSView)
 let macImageView = NSImageView()
 macImageView.wantsLayer = true // Required for macOS layer backing
 
-if imageData.edrImageFormat != .sdr {
+if imageSource.format != .sdr {
     // Support HDR headroom
     macImageView.layer?.wantsExtendedDynamicRangeContent = true
     // Ensure color fidelity for wide color spaces
@@ -256,7 +263,7 @@ if imageData.edrImageFormat != .sdr {
 // For iOS (UIKit / UIView)
 let iosImageView = UIImageView()
 
-if imageData.edrImageFormat != .sdr {
+if imageSource.format != .sdr {
     // Support HDR headroom
     iosImageView.layer.wantsExtendedDynamicRangeContent = true
     // Ensure color fidelity for wide color spaces
