@@ -107,6 +107,7 @@ let imageSource: EDRImage.Source
 
 var body: some View {
     EDRImage(source: selectedSource)
+        .modifier(EDRModifier(profile: .Defaults.hdr))    
 }
 ```
  
@@ -243,6 +244,7 @@ let imageSource: EDRImage.Source
 
 var body: some View {
     EDRImage(source: selectedSource)
+        .modifier(EDRModifier(profile: .Defaults.hdr))    
 }
 ```
 
