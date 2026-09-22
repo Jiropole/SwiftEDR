@@ -8,15 +8,14 @@
 import SwiftUI
 
 /// Manages execution of a function with an adaptive callback frequency.
-@MainActor
-public final class BackoffRepeater {
-    /// Callback returns true if the timer interval should back off (slow down), else false if it should continue or speed up.
-    public typealias FunctionBody = @MainActor () -> Bool
+public actor BackoffRepeater {
+    /// Callback returns true if the timer interval should continue or speed up, or false if it should slow down.
+    public typealias FunctionBody = @Sendable () async -> Bool
 
     public let delayRange: ClosedRange<TimeInterval>
     public let tolerance: TimeInterval
 
-    private var debounceTimer: Timer?
+    private var debounceTask: Task<Void, Never>?
     private var nextDelay: TimeInterval
 
     public init(delayRange: ClosedRange<TimeInterval>, tolerance: TimeInterval? = nil) {
@@ -25,33 +24,37 @@ public final class BackoffRepeater {
         self.tolerance = tolerance ?? delayRange.lowerBound * 0.5
     }
 
-    public func execute(_ body: @escaping FunctionBody) {
-        scheduleTimerWithBody(body)
+    public func execute(speedUp: Bool = false, _ body: @escaping FunctionBody) {
+        if speedUp {
+            nextDelay = delayRange.lowerBound
+        }
+        scheduleTimeoutWithBody(body)
     }
 
     isolated deinit {
-        debounceTimer?.invalidate()
+        debounceTask?.cancel()
     }
 }
 
 private extension BackoffRepeater {
-    func scheduleTimerWithBody(_ body: @escaping FunctionBody) {
-        debounceTimer?.invalidate()
-        debounceTimer = Timer.scheduledTimer(withTimeInterval: nextDelay, repeats: false, block: { [weak self] _ in
-            Task {
-                await self?.timerFiredWithBody(body)
-            }
-        })
-        debounceTimer?.tolerance = tolerance
+    func scheduleTimeoutWithBody(_ body: @escaping FunctionBody) {
+        debounceTask?.cancel()
+        debounceTask = Task { [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(for: .seconds(nextDelay),
+                                  tolerance: .seconds(tolerance))
+            guard !Task.isCancelled else { return }
+            await timoutFiredWithBody(body)
+        }
     }
 
-    func timerFiredWithBody(_ body: @escaping FunctionBody) {
-        let shouldBackoff = body()
-        if shouldBackoff {
-            nextDelay = min(delayRange.upperBound, nextDelay * 2)
+    func timoutFiredWithBody(_ body: @escaping FunctionBody) async {
+        let faster = await body()
+        if faster {
+            nextDelay = delayRange.lowerBound
         } else {
-            nextDelay = max(delayRange.lowerBound, nextDelay / 2)
+            nextDelay = min(delayRange.upperBound, nextDelay * 2)
         }
-        scheduleTimerWithBody(body)
+        scheduleTimeoutWithBody(body)
     }
 }

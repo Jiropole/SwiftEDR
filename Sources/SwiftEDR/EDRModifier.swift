@@ -19,10 +19,9 @@ public struct EDRModifier: ViewModifier {
     /// Initialize a modifier for a given profile.
     /// - Parameters:
     ///   - profile: Selects an EDR Profile to be applied to `content`.
-    ///   - pollFrequency: Controls the slowest rate the `edrHeadroom` environment value may updated, in Hz. High frequency polling is not recommended. Default: 1Hz. If high frequency headroom updates are required, EDRCanvas is the better choice.
-    public init(profile: Profile, pollFrequency: CGFloat = 1.0) {
+    public init(profile: Profile) {
         self.profile = profile
-        self.headroomFollower = HeadroomFollower(profile: profile, pollfrequency: pollFrequency)
+        self.headroomFollower = HeadroomFollower(profile: profile)
     }
 
     public func body(content: Content) -> some View {
