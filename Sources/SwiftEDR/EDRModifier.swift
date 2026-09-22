@@ -14,18 +14,18 @@ public struct EDRModifier: ViewModifier {
     private let profile: Profile
 
     /// The follower will publish changes to headroom attributes.
-    private let headroomFollower: HeadroomFollower
+    @State private var headroomFollower: HeadroomFollower = .init()
 
     /// Initialize a modifier for a given profile.
     /// - Parameters:
     ///   - profile: Selects an EDR Profile to be applied to `content`.
     public init(profile: Profile) {
         self.profile = profile
-        self.headroomFollower = HeadroomFollower(profile: profile)
     }
 
     public func body(content: Content) -> some View {
-        let palette = Palette(profile: profile, headroom: headroomFollower.headroom)
+        let palette = Palette(profile: profile,
+                              headroom: headroomFollower.headroom.headroomForProfile(profile))
         return content
             // Add any bloom effect.
             .modifier(BloomModifier())

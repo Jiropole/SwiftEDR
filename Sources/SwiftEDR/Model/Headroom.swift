@@ -49,8 +49,8 @@ public struct Headroom: BaseModel {
 #else
         let maxHeadroom = profile.mode == .hdr ? profile.maxHeadroom : 1
         return Headroom(current: min(current, maxHeadroom),
-                        potential: min(potential, maxHeadroom),
-                        reference: min(reference, maxHeadroom))
+                        potential: potential,
+                        reference: reference)
 #endif
     }
 }

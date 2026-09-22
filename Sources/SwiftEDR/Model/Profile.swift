@@ -70,8 +70,11 @@ extension Profile {
     }
 
     /// A convenience function to get a modified (often simplified) version of the profile.
-    public func replacing(mode: Mode? = nil, bloom: Bloom? = nil, options: Options? = []) -> Profile {
-        Profile(mode: mode ?? self.mode, bloom: bloom ?? self.bloom, options: options ?? self.options)
+    public func replacing(mode: Mode? = nil, bloom: Bloom? = nil, maxHeadroom: CGFloat? = nil, options: Options? = []) -> Profile {
+        Profile(mode: mode ?? self.mode,
+                bloom: bloom ?? self.bloom,
+                maxHeadroom: maxHeadroom ?? self.maxHeadroom,
+                options: options ?? self.options)
     }
 }
 
@@ -86,6 +89,17 @@ extension Profile {
         case edr
         /// Extended color range and bit depth for precise color math displayed in an extended HDR color range with higher contrast and absolute brightness.
         case hdr
+
+        public var shortTitle: String {
+            switch self {
+            case .sdr:
+                return String(localized: "SDR", comment: "Standard Dynamic Range")
+            case .edr:
+                return String(localized: "EDR", comment: "Extended Dynamic Range")
+            case .hdr:
+                return String(localized: "HDR", comment: "High Dynamic Range")
+            }
+        }
     }
 
     /// Attributes related to the Bloom effect.

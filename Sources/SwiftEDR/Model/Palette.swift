@@ -75,7 +75,7 @@ private extension Palette {
                          blue: components[2], opacity: components[3])
         }
         return Color(cgColor: cgColor)
-            .headroom(headroom.potential)
+            .headroom(min(profile.maxHeadroom, headroom.potential))
     }
 
     /// Compute boosted components for R, G, B.
