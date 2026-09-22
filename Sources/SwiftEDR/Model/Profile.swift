@@ -110,7 +110,7 @@ extension Profile {
         public var isActive: Bool { intensity > 0 && radius > 0 }
 
         public init(mode: Mode = .luminance, radius: CGFloat = 0, threshold: CGFloat = 1,
-                    kneeWidth: CGFloat = 0, intensity: CGFloat = 0, adaptivity: CGFloat = 0.15) {
+                    kneeWidth: CGFloat = 0, intensity: CGFloat = 0, adaptivity: CGFloat = 0.0) {
             self.mode = mode
             self.radius = radius
             self.threshold = threshold
@@ -122,7 +122,7 @@ extension Profile {
         public static let hdr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.2, intensity: 1.0)
         public static let edr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.1, intensity: 1.0)
         public static let sdr = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.1, intensity: 1.0)
-        public static let none = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.0, intensity: 0.0)
+        public static let none = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.1, intensity: 0.0)
     }
 
     /// Future thing.

@@ -71,7 +71,7 @@ There are a few ways to leverage this package:
 * Acquire all drawing colors from the environment `edrPalette`, or the `palette` passed to the EDRCanvas `onDraw` function.
 
 ### EDRModifier View Modifier
-This view modifier allows you to apply EDR behaviors, defined by a Profile, to a specific view.
+This view modifier makes it straightforward to apply EDR behaviors, defined by a Profile, to a specific view.
 
 ```swift
 AnimatedHeroView()
@@ -100,13 +100,14 @@ TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { time
 ```
 
 ### EDRImage View
-This view makes it easy to display SDR or HDR images from data in a cross platform way. See OtherExamplesView.swift in the example app for more implementation details, or see HDR Still Image Support for other image-related support.
+This view may simplify display SDR or HDR images from data in a cross platform way. See OtherExamplesView.swift in the example app for practical applications, or see HDR Still Image Support for other image-related support.
 
 ```swift
-let imageSource: EDRImage.Source
+let data: Data
+var imageSource: EDRImage.Source { .init(data: data) }
 
 var body: some View {
-    EDRImage(source: selectedSource)
+    EDRImage(source: imageSource)
         .modifier(EDRModifier(profile: .Defaults.hdr))    
 }
 ```
@@ -115,7 +116,7 @@ var body: some View {
 
 ### 🎨 Palette Model
 The `Palette` model has two roles:
-* Wraps all EDR state into a single object that can be easily passed via the environment and queried to implement adaptive behaviors.  
+* Wraps EDR profile and headroom into a single object that can be easily passed via the environment and queried to implement adaptive behaviors.  
 * Serves as the authoritative Color vendor, ensuring colors are properly suited to the current color space and dynamic range. 
 
 Palette is composed of the following attributes:
@@ -123,7 +124,9 @@ Palette is composed of the following attributes:
 * `headroom`: Continuously variable headroom.
 
 
-Here is an example of using the palette to generate colors calibrated for the mode and dynamic range. Note the use of the `boost` parameter when requesting a color. Use this in lieu of premultiplying the color components, to avoid color washout in HDR.
+Below are some examples of using the palette to generate colors calibrated for the mode and dynamic range. Note the use of the `boost` parameter when requesting an HDR color. Especially if you are using nonlinear color mode (the default), use `boost` in lieu of premultiplying the RGB color components, in order to avoid color washout in HDR. 
+
+Alternately, if you are using HSV colors, the Value may exceed 1.0 to safely push into the HDR range. If `boost` is also specified, the effective boost will be `boost * max(1, value - 1)`. 
 
 ```swift
 @Environment(\.edrPalette) private var palette
@@ -134,11 +137,17 @@ var sdrBlue: Color {
 }
 
 var hdrBlue: Color {
-    // Do not premultiply color values to take advantage of HDR headroom.
+    // Do not premultiply RGB color values to take advantage of HDR headroom.
     // Instead use boost: safe for use with active profile!
     let hdrPower = palette.headroom.current * 0.67
     return palette.rgbColor([0.1, 0.2, 1.0, 1], boost: hdrPower)    
 }
+
+var hdrRed: Color {
+    // For HSV color, it is safe to drive the boost with Value > 1.0.
+    return palette.hsvColor([0.0, 1.0, 4.0, 1])    
+}
+
 ```
 
 ### 📺 Profile Model 
@@ -154,8 +163,13 @@ Profile is composed of the following attributes:
 * `maxHeadroom` – Constrains the maximum requested headroom in HDR mode. Even values as low as 2-5 can be striking. Use this for more specific control than offered by the .constrainedHDR option. Note that contained Image or related views may still request higher headroom.
 * `options`, any of:
     * `.constrainedHDR` – enables system-throttled HDR brightness, for example to avoid overpowering adjacent content or to reduce energy usage. 
-    * `.linearColorSpace` – uses linear color space, which tends to make dark areas brighter with lower contrast, which is better for math-based color. The default is nonlinear, which is better for perceptual color. For EDR and HDR modes, color math is still done in linear space.
+    * `.linearColorSpace` – uses linear color space instead of the default nonlinear space. 
     * `.bloomHighlightsOnly` – show the bloom effect alone, hiding the content, for tuning.
+
+#### Color Linearity
+SwiftEDR offers either nonlinear or linear color modes, according to whether the Profile option `.linearColorSpace` is included. This determines how Color values are computed by the `Palette` model. The default is to vend nonlinear colors, which results in a familiar color result that better matches the human perceptual system, i.e. has a gamma curve.  Linear color is better for math-based color applications, or when the app applies its own tone mapping. 
+
+This setting has less to do with how color math is performed. For EDR and HDR modes, SwiftEDR color math is performed in linear space, which is best for accurately rendering blends and effects. Only in SDR mode with nonlinear space is blending nonlinear, which matches how a basic SwiftUI Canvas behaves.
 
 ### 🗿 Headroom Model
 The `Headroom` model is composed of the following attributes:
@@ -191,13 +205,15 @@ These are best dialed to desired aesthetics, as there is no one size that fits a
 
 Note that as headroom increases, it may be necessary to adjust the bloom threshold or knee to avoid bloom blowout – a nasty business. Adaptivity helps automate this adjustment, but the app could also opt to set adaptivity to 0.0 and manually tune the threshold.
 
+Also note the Bloom implementation is not compatible with ViewRepresentable and certain other UIKit-anchored views that cannot be flattened for color processing within the scope of this package. 
+
 
 ## ⛵️ Color Design Note
 Color design for SDR and EDR are very similar, as the output color ranges are identical. But colors are interpreted somewhat differently when displayed in HDR mode, which may affect color design decisions.
 
 HDR color design can take adantage of colors whose component values exceed the maximum SDR display brightness, taking into account the current headroom, to achieve deeper tonal contrast. 
 
-For nonlinear, perceptually-oriented color spaces (the default), it is recommended to continue doing color design in SDR space, i.e. with color power values in the range of 0.0 to 1.0. If a color is intended to brighten with HDR headroom, use the `boost` parameter of the color factory functions to drive it into HDR spacem, as described above under Palette Model. This approach will retain the perceptual color space. 
+For nonlinear, perceptually-oriented color spaces (the default), it is recommended to continue doing color design with values in the range of 0.0 to 1.0. If a color is intended to brighten with HDR headroom, use the `boost` parameter of the color factory functions to drive it into HDR space, as described above under Palette Model. This approach will retain the perceptual color space. 
 
 If, instead, you are managing colors yourself, you will want to specify the desired headroom in order to drive demand on the HDR subsystem. For example:
 
@@ -243,7 +259,7 @@ Use SwiftEDR to display SDR or HDR images from data in a cross platform way. See
 let imageSource: EDRImage.Source
 
 var body: some View {
-    EDRImage(source: selectedSource)
+    EDRImage(source: imageSource)
         .modifier(EDRModifier(profile: .Defaults.hdr))    
 }
 ```

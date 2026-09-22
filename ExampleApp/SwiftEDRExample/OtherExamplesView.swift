@@ -19,7 +19,7 @@ struct OtherExamplesView: View {
     @State private var selectedItem: PhotosPickerItem?
 
     var body: some View {
-        VStack {
+        VStack(spacing: 8) {
             Group {
                 if isShowingImage {
                     imageView
@@ -55,7 +55,7 @@ struct OtherExamplesView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.bottom, 8)
         }
         .onChange(of: selectedItem) { _, newItem in
             isShowingImage = true

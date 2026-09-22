@@ -54,14 +54,16 @@ extension Palette {
 
 private extension Palette {
     /// Create a color from HSVA components that is calibrated for the color space and headroom.
+    /// If the value component is greater than one, it is treated as HDR boost.
     func hsvColor(_ components: [CGFloat], space: CGColorSpace, boost: CGFloat = 1.0) -> Color {
         let p3Color = NativeColor(hue: components[0],
                                   saturation: components[1],
-                                  brightness: components[2],
+                                  brightness: min(1, components[2]),
                                   alpha: components[3])
+        let effectiveBoost = boost * max(1, components[2] - 1)
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         p3Color.getRed(&r, green: &g, blue: &b, alpha: &a)
-        return rgbColor([r, g, b, a], space: space, boost: boost)
+        return rgbColor([r, g, b, a], space: space, boost: effectiveBoost)
     }
 
     /// Create a color from RGBA components that is calibrated for the color space and headroom.
