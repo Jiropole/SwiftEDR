@@ -15,11 +15,11 @@ import SwiftUI
 public struct EDRImage: View {
     public struct Source: Equatable {
         public let data: Data
-        public let format: ImageFormat
+        public let info: ImageInfo
 
-        public init(data: Data, format: ImageFormat? = nil ) {
+        public init(data: Data, info: ImageInfo? = nil ) {
             self.data = data
-            self.format = format ?? data.edrImageFormat
+            self.info = info ?? data.edrImageInfo
         }
     }
 
@@ -61,7 +61,7 @@ public struct EDRImage: View {
 
 private extension EDRImage {
     private func processImageData() async {
-        let wantsHDR = source.format != .sdr && palette.profile.mode == .hdr
+        let wantsHDR = source.info.format != .sdr && palette.profile.mode == .hdr
         #if os(iOS)
         // Configure iOS HDR Engine
         var config = UIImageReader.Configuration()

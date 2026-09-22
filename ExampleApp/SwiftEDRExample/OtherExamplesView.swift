@@ -20,26 +20,21 @@ struct OtherExamplesView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Group {
-                if isShowingImage {
-                    imageView
-                } else {
-                    customView
-                }
-            }
-            .overlay(alignment: .bottomTrailing) {
-                /// Use a Shape, which can handle HDR colors, and then mask it.
-                metricsView.opacity(0)
-                    .padding(4)
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                    .overlay {
-                        palette.rgbColor([1, 1, 1, 1], boost: palette.headroom.current * 0.25)
-                            .mask {
-                                metricsView
-                            }
+            ZStack(alignment: .bottom) {
+                Group {
+                    if isShowingImage {
+                        imageView
+                    } else {
+                        customView
                     }
-                    .padding(4)
+                }
+                HStack {
+                    imageMetricsView
+                    Spacer()
+                    edrMetricsView
+                }
+                .foregroundStyle(palette.rgbColor([1, 1, 1, 1], boost: palette.headroom.current * 0.25))
+                .font(.caption)
             }
 
             HStack {
@@ -71,24 +66,13 @@ private extension OtherExamplesView {
     func processPhotosSelection(_ item: PhotosPickerItem?) async {
         guard let item,
               let data = try? await item.loadTransferable(type: Data.self) else { return }
-        self.selectedSource = .init(data: data, format: data.edrImageFormat)
+        self.selectedSource = .init(data: data)
     }
 
     var imageView: some View {
         VStack(alignment: .trailing) {
             if let selectedSource {
                 EDRImage(source: selectedSource)
-                    .overlay(alignment: .bottomLeading) {
-                        Text("\(selectedSource.format.rawValue)")
-                            .font(.caption)
-                            .foregroundStyle(palette.rgbColor([1, 1, 1, 1], boost: palette.headroom.current * 0.25))
-                            .padding(4)
-                            .background {
-                                Color.black.opacity(0.3)
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                            }
-                            .padding(4)
-                    }
             } else {
                 Image(systemName: "photo.fill")
                     .resizable()
@@ -99,37 +83,51 @@ private extension OtherExamplesView {
     }
 
     var customView: some View {
-        ZStack {
+        func subImage(offset: CGFloat) -> some View {
+            let stepElapsed = elapsed + offset
+            return Circle()
+                .mask {
+                    Image(systemName: "progress.indicator", variableValue: fmod(stepElapsed / 4, 1))
+                        .resizable().scaledToFit()
+                }
+                .fontWeight(.bold)
+                .foregroundStyle(colorAtElapsed(stepElapsed))
+                .rotationEffect(.radians(.pi / 8 * offset + .pi * offset))
+        }
+        return ZStack {
             Group {
                 subImage(offset: 0)
                 subImage(offset: 0.25)
                 subImage(offset: 0.5)
                 subImage(offset: 0.75)
             }
-            //            .blendMode(.plusLighter)
-            .compositingGroup()
         }
     }
 
-
-    var metricsView: some View {
+    var edrMetricsView: some View {
         Text("Headroom: \(palette.headroom.current, specifier: "%.2f") / \(palette.headroom.potential, specifier: "%.2f")\nAdaptive threshold: \(palette.effectiveBloomThreshold, specifier: "%.2f")")
             .multilineTextAlignment(.center)
-            .font(.caption)
+            .padding(4)
+            .background {
+                Color.black.opacity(0.4)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+            .padding(4)
     }
 
-    func subImage(offset: CGFloat) -> some View {
-        let stepElapsed = elapsed + offset
-        /// Use a Shape, which can handle HDR colors, and then mask it.
-        return Circle()
-            .mask {
-                Image(systemName: "progress.indicator", variableValue: fmod(stepElapsed / 4, 1))
-                    .resizable().scaledToFit()
+    var imageMetricsView: some View {
+        Group {
+            if isShowingImage, let selectedSource {
+                Text("\(selectedSource.info.format.rawValue)\nHeadroom: \(selectedSource.info.headroom, specifier: "%.2f")")
+                    .multilineTextAlignment(.center)
+                    .padding(4)
+                    .background {
+                        Color.black.opacity(0.4)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .padding(4)
             }
-            .fontWeight(.bold)
-            .foregroundStyle(colorAtElapsed(stepElapsed))
-            .allowedDynamicRange(.high)
-            .rotationEffect(.radians(.pi / 8 * offset + .pi * offset))
+        }
     }
 
     func colorAtElapsed(_ elapsed: CGFloat) -> Color {

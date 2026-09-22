@@ -5,12 +5,18 @@
 //  Created by Jesse Hemingway on 9/19/26.
 //
 
-import SwiftUI
 import ImageIO
+import CoreGraphics
+import Foundation
 
 public extension CGImageSource {
-    /// Inspects the image source metadata to determine its exact HDR rendering format.
-    var edrImageFormat: ImageFormat {
+    var edrImageInfo: ImageInfo {
+        .init(format: edrImageFormat,
+              headroom: edrHeadroom)
+    }
+
+    /// Inspects the image source metadata to determine its SDR/HDR rendering format.
+    var edrImageFormat: ImageInfo.Format {
         // Check for Gain Maps (Auxiliary Images)
         // Check for Standard ISO 21496-1 first, then fallback to Apple's legacy type
         if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *),
@@ -34,4 +40,71 @@ public extension CGImageSource {
 
         return .sdr
     }
+
+    /// Computes the content headroom multiplier without fully decoding the pixel bitmap.
+    var edrHeadroom: CGFloat {
+        switch self.edrImageFormat {
+
+        case .isoGainMap:
+            // ISO 21496-1 uses specific metadata blocks inside the auxiliary data
+            if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *),
+               let auxInfo = CGImageSourceCopyAuxiliaryDataInfoAtIndex(self, 0, kCGImageAuxiliaryDataTypeISOGainMap) as? [String: Any],
+               let metadata = auxInfo[kCGImageAuxiliaryDataInfoMetadata as String] as? [String: Any] {
+
+                // ISO standard defines maximum content boost/headroom natively
+                // Check for 'max_content_boost' or the equivalent parsed key
+                if let maxBoost = metadata["max_content_boost"] as? CGFloat {
+                    return maxBoost // Returns direct headroom multiplier (e.g. 4.0)
+                }
+            }
+            // Fallback to reading raw top-level properties if available
+            return readTopLevelGainMapHeadroom()
+
+        case .appleGainMap:
+            // Use Method 2: Decode the MakerApple proprietary EXIF keys
+            guard let properties = CGImageSourceCopyPropertiesAtIndex(self, 0, nil) as? [String: Any],
+                  let makerApple = properties[kCGImagePropertyMakerAppleDictionary as String] as? [String: Any] else {
+                return readTopLevelGainMapHeadroom()
+            }
+
+            if let tag33 = makerApple["33"] as? CGFloat,
+               let tag48 = makerApple["48"] as? CGFloat {
+                let headroom = exp2(tag33) * (1.0 + tag48)
+                return max(1.0, headroom)
+            }
+            return readTopLevelGainMapHeadroom()
+
+        case .isoHDR:
+            // Direct HDR profiles are not relative to SDR base layers.
+            // We return standard static ceiling multipliers based on the profile name.
+            guard let properties = CGImageSourceCopyPropertiesAtIndex(self, 0, nil) as? [String: Any],
+                  let profileName = properties[kCGImagePropertyProfileName as String] as? String else {
+                return 4.0 // A safe 4.0 (2 stops) fallback default for unknown HDR
+            }
+
+            if profileName.contains("PQ") || profileName.contains("HDR10") {
+                // PQ absolute peak is 10,000 nits. If mapped relative to 100 nits SDR reference, max is 100.
+                // However, typical mastering targets 1,000 to 4,000 nits (Headroom 10.0 - 40.0)
+                return 10.0
+            } else if profileName.contains("HLG") {
+                // Hybrid Log-Gamma targets roughly 1,000 nits max dynamic ceiling
+                return 10.0
+            }
+            return 4.0
+
+        case .sdr:
+            return 1.0 // Standard dynamic range has no headroom over standard white
+        }
+    }
+
+    /// Fallback helper to grab the raw top-level dynamic range boost property if the maker dictionary is stripped.
+    private func readTopLevelGainMapHeadroom() -> CGFloat {
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(self, 0, nil) as? [String: Any] else { return 1.0 }
+        // Some processors map the parsed maximum boost natively into a top-level key
+        if let rawHeadroom = properties["HDRGainMapHeadroom"] as? CGFloat {
+            return max(1.0, rawHeadroom)
+        }
+        return 1.0
+    }
 }
+

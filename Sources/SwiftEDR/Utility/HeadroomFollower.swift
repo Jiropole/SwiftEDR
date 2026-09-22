@@ -22,7 +22,6 @@ public final class HeadroomFollower {
     public init(profile: Profile) {
         self.profile = profile
         self.headroom = Headroom.readHeadroom()?.headroomForProfile(profile) ?? .init()
-        print("Initial: \(self.headroom); \(profile.mode)")
 
         Task { [weak self] in
             await HeadroomMonitor.shared.speedUp()
@@ -36,7 +35,6 @@ public final class HeadroomFollower {
     private func updateHeadroom(_ headroom: Headroom) {
         let cappedHeadroom = headroom.headroomForProfile(profile)
         guard cappedHeadroom != self.headroom else { return }
-        print("** \(cappedHeadroom); \(profile.mode)")
         self.headroom = cappedHeadroom
     }
 }
