@@ -46,7 +46,7 @@ public struct EDRModifier: ViewModifier {
 
             // Ensure headroom is updated when attributes are likely to change (mainly for Mac).
             .onChange(of: profile) { oldValue, newValue in
-                headroomFollower.updateHeadroom()
+                headroomFollower.prime()
             }
 
             // Add profile and headroom to environment.

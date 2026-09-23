@@ -8,12 +8,12 @@
 import Foundation
 import ImageIO
 
-public extension Data {
-    /// Inspects the image metadata bytes to determine the HDR rendering format and ideal headroom.
-    var edrImageInfo: ImageInfo {
+extension Data {
+    /// Collects EDR image metadata by directly reading it from the image data.
+    public var edrImageMetadata: ImageMetadata {
         guard let source = CGImageSourceCreateWithData(self as CFData, nil) else {
             return .init(format: .sdr, headroom: 1.0)
         }
-        return source.edrImageInfo
+        return source.edrImageMetadata
     }
 }

@@ -24,10 +24,10 @@ public final class HeadroomFollower {
         }
     }
 
-    /// Does not normally need to be called directly unless profile has changed on MacOS.
-    public func updateHeadroom() {
+    /// Temporarily speeds up responsiveness when a changing environment is predicted.
+    public func prime() {
         Task {
-            await HeadroomMonitor.shared.updateHeadroom()
+            await HeadroomMonitor.shared.prime()
         }
     }
 
@@ -36,7 +36,6 @@ public final class HeadroomFollower {
             guard let self else { return }
             Task { 
                 guard headroom != self.headroom else { return }
-                print("** \(headroom)")
                 self.headroom = headroom
             }
         }

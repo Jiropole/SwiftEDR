@@ -1,5 +1,5 @@
 //
-//  ImageFormat.swift
+//  ImageMetadata.swift
 //  SwiftEDR
 //
 //  Created by Jesse Hemingway on 9/19/26.
@@ -9,7 +9,7 @@ import Foundation
 import ImageIO
 
 /// Used with image and data utilities for examining HDR image attributes.
-public struct ImageInfo: BaseModel {
+public struct ImageMetadata: BaseModel {
     public enum Format: String, BaseModel {
         /// Standard Dynamic Range image.
         case sdr
@@ -31,6 +31,10 @@ public struct ImageInfo: BaseModel {
         }
     }
 
+    /// EDR format of the image.
     public let format: Format
+    /// EDR headroom used by the image.
     public let headroom: CGFloat
+
+    public static let `default` = Self(format: .sdr, headroom: 1.0)
 }

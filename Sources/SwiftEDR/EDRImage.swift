@@ -12,30 +12,41 @@ import AppKit
 #endif
 import SwiftUI
 
+/// Use EDRImage as cross platform alternative to Swift Image, supporting extended EDR behaviors and color handling.
+/// It is of primary use when it is convenient to provide the raw image data, or a cgImage created with headroom.
 public struct EDRImage: View {
-    public struct Source: Equatable {
-        public let data: Data
-        public let info: ImageInfo
 
-        public init(data: Data, info: ImageInfo? = nil ) {
-            self.data = data
-            self.info = info ?? data.edrImageInfo
-        }
+    /// Source used for EDR Image.
+    public enum Source: Equatable {
+        /// Source is data, for example from a url or the photo library.
+        case data(_ data: Data)
+        /// Source is an image, which may have limited metadata depending on how it was created.
+        case image(_ cgImage: CGImage)
     }
 
-    let source: Source
+    private let source: Source
+    private let metadata: ImageMetadata
 
     @Environment(\.edrPalette) private var palette
+    @State private var aspectRatio: CGSize = CGSize(width: 1, height: 1)
 
 #if os(iOS) || os(visionOS)
     @State private var processedImage: UIImage?
 #elseif os(macOS)
     @State private var processedImage: CGImage?
 #endif
-    @State private var aspectRatio: CGSize = CGSize(width: 1, height: 1)
 
-    public init(source: Source) {
+    public init(source: Source, metadata: ImageMetadata? = nil) {
         self.source = source
+        self.metadata = metadata ?? source.embeddedMetadata
+        if case .image(let cgImage) = source {
+            // Populate the image immediately for image source
+#if os(iOS) || os(visionOS)
+            self.processedImage = UIImage(cgImage: cgImage)
+#elseif os(macOS)
+            self.processedImage = cgImage
+#endif
+        }
     }
 
     public var body: some View {
@@ -61,20 +72,22 @@ public struct EDRImage: View {
 
 private extension EDRImage {
     private func processImageData() async {
-        let wantsHDR = source.info.format != .sdr && palette.profile.mode == .hdr
+        guard case .data(let imageData) = source else { return }
+
+        let wantsHDR = metadata.format != .sdr && palette.profile.mode == .hdr
         #if os(iOS)
         // Configure iOS HDR Engine
         var config = UIImageReader.Configuration()
         config.prefersHighDynamicRange = wantsHDR
         let reader = UIImageReader(configuration: config)
 
-        if let uiImage = await reader.image(data: source.data) {
+        if let uiImage = await reader.image(data: imageData) {
             self.processedImage = uiImage
         }
         #elseif os(macOS)
         // Configure macOS HDR Context Engine
         let options: [CIImageOption: Any] = [.expandToHDR: wantsHDR]
-        guard let ciImage = CIImage(data: source.data, options: options) else { return }
+        guard let ciImage = CIImage(data: imageData, options: options) else { return }
 
         let context = CIContext()
         let colorSpace = ciImage.colorSpace ?? palette.profile.colorSpace
@@ -85,5 +98,16 @@ private extension EDRImage {
             self.processedImage = cgImage
         }
         #endif
+    }
+}
+
+public extension EDRImage.Source {
+    var embeddedMetadata: ImageMetadata {
+        switch self {
+        case .data(let data):
+            return data.edrImageMetadata
+        case .image(let cgImage):
+            return cgImage.edrImageMetadata
+        }
     }
 }

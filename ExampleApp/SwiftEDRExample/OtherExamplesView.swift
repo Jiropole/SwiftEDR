@@ -66,7 +66,7 @@ private extension OtherExamplesView {
     func processPhotosSelection(_ item: PhotosPickerItem?) async {
         guard let item,
               let data = try? await item.loadTransferable(type: Data.self) else { return }
-        self.selectedSource = .init(data: data)
+        self.selectedSource = .data(data)
     }
 
     var imageView: some View {
@@ -119,7 +119,8 @@ private extension OtherExamplesView {
     var imageMetricsView: some View {
         Group {
             if isShowingImage, let selectedSource {
-                Text("\(selectedSource.info.format.rawValue)\nHeadroom: \(selectedSource.info.headroom, specifier: "%.2f")")
+                let metadata = selectedSource.embeddedMetadata
+                Text("\(metadata.format.rawValue)\nHeadroom: \(metadata.headroom, specifier: "%.2f")")
                     .multilineTextAlignment(.leading)
                     .padding(4)
                     .background {

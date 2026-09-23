@@ -31,8 +31,8 @@ public actor HeadroomMonitor {
         // and on MacOS we miss changes in potential headroom without polling.
         // As a workaround, use a backoff repeater to poll for changes.
         self.repeater = BackoffRepeater(delayRange: delayRange)
-        Task {
-            await monitorRepeater()
+        Task { [weak self] in
+            await self?.monitorRepeater()
         }
         // For iOS, headroom is also likely to change when brightness or focus changes.
         Task {
@@ -50,22 +50,27 @@ public actor HeadroomMonitor {
         // And for VisionOS, there is no changing headroom, to my knowledge.
     }
 
-    isolated deinit {
-        notificationTask?.cancel()
+    /// Temporarily speeds up responsiveness when a changing environment is predicted.
+    public func prime() {
+        Task { [weak self] in
+            await _ = self?.updateHeadroom()
+            await self?.monitorRepeater(speedUp: true)
+        }
     }
 
-    /// Conditionally updates headroom by querying system properties, returning true if the value changed.
-    /// Does not normally need to be called directly unless profile has changed on MacOS.
-    public func updateHeadroom() async -> Bool {
-        let headroom = (await Headroom.readHeadroom()) ?? .init()
-        guard await headroom != self.multicaster.value else { return false }
-        print("* \(headroom)")
-        await self.multicaster.updateValue(headroom)
-        return true
+    isolated deinit {
+        notificationTask?.cancel()
     }
 }
 
 private extension HeadroomMonitor {
+    /// Conditionally updates headroom by querying system properties, returning true if the value changed.
+    private func updateHeadroom() async -> Bool {
+        let headroom = (await Headroom.readHeadroom()) ?? .init()
+        guard await headroom != self.multicaster.value else { return false }
+        await self.multicaster.updateValue(headroom)
+        return true
+    }
 
     func monitorNotification(_ name: Notification.Name) {
         self.notificationTask = Task { [weak self] in

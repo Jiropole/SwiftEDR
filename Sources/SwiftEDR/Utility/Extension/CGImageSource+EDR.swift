@@ -9,14 +9,15 @@ import ImageIO
 import CoreGraphics
 import Foundation
 
-public extension CGImageSource {
-    var edrImageInfo: ImageInfo {
-        .init(format: edrImageFormat,
-              headroom: edrHeadroom)
+extension CGImageSource {
+    /// Collects EDR image metadata by directly reading it from the image source.
+    public var edrImageMetadata: ImageMetadata {
+        let format = edrImageFormat
+        return .init(format: format, headroom: edrHeadroomWithFormat(format))
     }
 
     /// Inspects the image source metadata to determine its SDR/HDR rendering format.
-    var edrImageFormat: ImageInfo.Format {
+    private var edrImageFormat: ImageMetadata.Format {
         // Check for Gain Maps (Auxiliary Images)
         // Check for Standard ISO 21496-1 first, then fallback to Apple's legacy type
         if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *),
@@ -42,8 +43,8 @@ public extension CGImageSource {
     }
 
     /// Computes the content headroom multiplier without fully decoding the pixel bitmap.
-    var edrHeadroom: CGFloat {
-        switch self.edrImageFormat {
+    private func edrHeadroomWithFormat(_ format: ImageMetadata.Format) -> CGFloat {
+        switch format {
 
         case .isoGainMap:
             // ISO 21496-1 uses specific metadata blocks inside the auxiliary data
