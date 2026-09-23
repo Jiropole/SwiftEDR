@@ -1,4 +1,6 @@
 # SwiftEDR
+![Static Badge](https://img.shields.io/badge/Platforms-iOS26_%7C_visionOS26_%7C_macOS26-blue%3Flogo%3Dgithub)
+
 A clean, convenient and performant mini-framework to bring EDR (extended dynamic range) and HDR (high dynamic range) display to any SwiftUI view.
 
 SwiftEDR is entirely hand coded in SwiftUI and MSL. AI fulfilled a limited role around topic research and comprehension.
@@ -64,7 +66,7 @@ import SwiftEDR
 ```
 
 There are several ways to leverage this package:
-* Apply the `EDRModifier` view modifier to any standard or custom SwiftUI view. This modifier may be applied to any SwiftUI view.
+* Apply the `EDRModifier` view modifier to any standard or custom SwiftUI view.
 * Replace instances of SwiftUI's `Canvas` with `EDRCanvas`. 
 * Acquire all drawing colors from the environment `edrPalette`, or the `palette` passed to the EDRCanvas `onDraw` function.
 * Replace instances of SwiftUI's `Image` with `EDRImage` for cross-platform display of data-based images. 
