@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Observable class that publishes updates to the active screen `headroom`.
 /// Can be concurrently instantiated without increasing monitoring overhead.
@@ -14,29 +15,37 @@ public final class HeadroomFollower {
     /// Fluctuates according to changing screen characteristics.
     public var headroom: Headroom
 
-    @ObservationIgnored
-    private var task: Task<Void, Never>?
+    private let subscriptionID: UUID = .init()
 
     public init() {
         self.headroom = Headroom.readHeadroom() ?? .init()
-        Task { await startMonitor() }
+        Task { [weak self] in
+            await self?.startMonitor()
+        }
+    }
+
+    /// Does not normally need to be called directly unless profile has changed on MacOS.
+    public func updateHeadroom() {
+        Task {
+            await HeadroomMonitor.shared.updateHeadroom()
+        }
     }
 
     private func startMonitor() async {
-        self.task = Task { [weak self] in
-            await HeadroomMonitor.shared.speedUp()
-            for await headroom in HeadroomMonitor.shared.headroomChannel {
-                guard let self, !Task.isCancelled else {
-                    print("Not self or canceled: \(Task.isCancelled)")
-                    return
-                }
+        await HeadroomMonitor.shared.multicaster.subscribe(id: subscriptionID) { [weak self] headroom in
+            guard let self else { return }
+            Task { 
                 guard headroom != self.headroom else { return }
+                print("** \(headroom)")
                 self.headroom = headroom
             }
         }
     }
 
-    deinit {
-        task?.cancel()
+    isolated deinit {
+        let id = subscriptionID
+        Task {
+            await HeadroomMonitor.shared.multicaster.unsubscribe(id: id)
+        }
     }
 }

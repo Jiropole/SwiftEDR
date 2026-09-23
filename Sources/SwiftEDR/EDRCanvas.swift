@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Use SwiftEDRCanvas as direct replacement for Swift Canvas, extended with support EDR color handling.
+/// Use EDRCanvas as direct replacement for Swift Canvas supporting extended EDR behaviors and color handling.
 public struct EDRCanvas: View {
     
     /// Callback function used by the package client to render the canvas.

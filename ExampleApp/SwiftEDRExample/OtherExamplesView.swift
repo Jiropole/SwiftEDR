@@ -101,12 +101,13 @@ private extension OtherExamplesView {
                 subImage(offset: 0.5)
                 subImage(offset: 0.75)
             }
+            .blendMode(.plusLighter)
         }
     }
 
     var edrMetricsView: some View {
         Text("Headroom: \(palette.headroom.current, specifier: "%.2f") / \(palette.headroom.potential, specifier: "%.2f")\nAdaptive threshold: \(palette.effectiveBloomThreshold, specifier: "%.2f")")
-            .multilineTextAlignment(.center)
+            .multilineTextAlignment(.trailing)
             .padding(4)
             .background {
                 Color.black.opacity(0.4)
@@ -119,7 +120,7 @@ private extension OtherExamplesView {
         Group {
             if isShowingImage, let selectedSource {
                 Text("\(selectedSource.info.format.rawValue)\nHeadroom: \(selectedSource.info.headroom, specifier: "%.2f")")
-                    .multilineTextAlignment(.center)
+                    .multilineTextAlignment(.leading)
                     .padding(4)
                     .background {
                         Color.black.opacity(0.4)

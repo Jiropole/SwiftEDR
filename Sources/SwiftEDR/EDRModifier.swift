@@ -13,7 +13,7 @@ public struct EDRModifier: ViewModifier {
     /// EDR profile configuration.
     private let profile: Profile
 
-    /// The follower will publish changes to headroom attributes.
+    /// The follower publishes changes to headroom attributes.
     @State private var headroomFollower: HeadroomFollower = .init()
 
     /// Initialize a modifier for a given profile.
@@ -43,6 +43,11 @@ public struct EDRModifier: ViewModifier {
             // Cue to deemphasize surrounding brightness on VisionOS.
             .preferredSurroundingsEffect(profile.mode == .hdr ? .dark : nil)
 #endif
+
+            // Ensure headroom is updated when attributes are likely to change (mainly for Mac).
+            .onChange(of: profile) { oldValue, newValue in
+                headroomFollower.updateHeadroom()
+            }
 
             // Add profile and headroom to environment.
             .environment(\.edrPalette, palette)
