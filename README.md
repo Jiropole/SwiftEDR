@@ -63,12 +63,11 @@ Import the package wherever needed:
 import SwiftEDR
 ```
 
-## Usage
-There are a few ways to leverage this package:
+There are several ways to leverage this package:
+* Apply the `EDRModifier` view modifier to any standard or custom SwiftUI view. This modifier may be applied to any SwiftUI view.
 * Replace instances of SwiftUI's `Canvas` with `EDRCanvas`. 
-* Replace instances of SwiftUI's `Image` with `EDRImage` for cross-platform display of data-based images. 
-* Apply the `EDRModifier` view modifier to any standard or custom SwiftUI view, including `EDRCanvas`.
 * Acquire all drawing colors from the environment `edrPalette`, or the `palette` passed to the EDRCanvas `onDraw` function.
+* Replace instances of SwiftUI's `Image` with `EDRImage` for cross-platform display of data-based images. 
 
 ### EDRModifier View Modifier
 This view modifier makes it straightforward to apply EDR behaviors, defined by a Profile, to a specific view.
@@ -79,7 +78,7 @@ AnimatedHeroView()
     .modifier(EDRModifier(profile: .Defaults.hdrBloom))
 ```
 
-Unfortunately, most SwiftUI views will not deal gracefully with HDR colors. However, it does work for shapes, so one workaround is to display a shape using HDR color, masked to the target view. Improving the powers of this modifier is in the queue.
+Not all SwiftUI views will deal gracefully with HDR colors. However, it does work for shapes, so if you run into issues, one workaround is to display a shape using HDR color, masked to the target view.
 
 ### EDRCanvas View
 The original intent behind this package! This view is a drop-in replacement for SwiftUI Canvas that supports generative content that is adaptive to wider dynamic ranges. But why bother, you ask? Why not just use that sweet modifier on a Canvas?
@@ -95,19 +94,18 @@ TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { time
                              elapsed: timeline.date.timeIntervalSince(startDate))
         .render()
     }
-    .modifier(EDRModifier(profile: mySmoothBurstHDRProfile))    
+    .modifier(EDRModifier(profile: mySmoothBurstHDRProfile))   // Don't forget the modifier
 }
 ```
 
 ### EDRImage View
-This view may simplify display SDR or HDR images from data in a cross platform way. See OtherExamplesView.swift in the example app for practical applications, or see HDR Still Image Support for other image-related support.
+This view simplifies display of EDR images in a cross platform way. See OtherExamplesView.swift in the example app for practical applications.
 
 ```swift
-let data: Data
-var imageSource: EDRImage.Source { .init(data: data) }
+let hdrImageData: Data
 
 var body: some View {
-    EDRImage(source: imageSource)
+    EDRImage(source: .data(hdrImageData))
         .modifier(EDRModifier(profile: .Defaults.hdr))    
 }
 ```
@@ -230,7 +228,7 @@ Also beware, as color values grow "hotter", there is the capacity for increased 
 While this package can be used to quickly add a cinematic effect to tastefully chosen elements of any SwiftUI application, best results are achieved using content colors designed around the advantages and challenges of HDR.
 
 
-## 🖼️ HDR Still Image Support
+## 🖼️ HDR Image Utilities
 
 SwiftEDR also provides utilities to identify, filter, and render High Dynamic Range (HDR) still photography format targets (such as ProRAW, UltraHDR JPEGs, and ISO HEIC files), and to help ensure HDR specific properties are configured, whether working with CALayer, UIImage, or SwiftUI.
 
@@ -249,18 +247,6 @@ case .isoHDR:
     print("Direct ISO HDR Still Frame (HLG/PQ) detected. Mind the tone-mapping on older screens.")
 case .sdr:
     print("Standard Dynamic Range image.")
-}
-```
-
-### Cross Platform Image Display
-Use SwiftEDR to display SDR or HDR images from data in a cross platform way. See OtherExamplesView.swift in the example app for more details.
-
-```swift
-let imageSource: EDRImage.Source
-
-var body: some View {
-    EDRImage(source: imageSource)
-        .modifier(EDRModifier(profile: .Defaults.hdr))    
 }
 ```
 

@@ -17,7 +17,7 @@ extension CGImageSource {
     }
 
     /// Inspects the image source metadata to determine its SDR/HDR rendering format.
-    private var edrImageFormat: ImageMetadata.Format {
+    public var edrImageFormat: ImageMetadata.Format {
         // Check for Gain Maps (Auxiliary Images)
         // Check for Standard ISO 21496-1 first, then fallback to Apple's legacy type
         if #available(iOS 18.0, macOS 15.0, tvOS 18.0, watchOS 11.0, *),
@@ -43,7 +43,7 @@ extension CGImageSource {
     }
 
     /// Computes the content headroom multiplier without fully decoding the pixel bitmap.
-    private func edrHeadroomWithFormat(_ format: ImageMetadata.Format) -> CGFloat {
+    public func edrHeadroomWithFormat(_ format: ImageMetadata.Format) -> CGFloat {
         switch format {
 
         case .isoGainMap:
