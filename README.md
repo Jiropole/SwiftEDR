@@ -26,10 +26,10 @@ Here are some examples of SDR, EDR and HDR on generative graphics, noting that i
 <img width="250" height="270" alt="swiftedr-hdr-mode" src="https://github.com/user-attachments/assets/8656e5ff-d3d9-4750-8757-769df3f158ca" />
 </p>
 
-And here is an equally fake rendition of the same image in SDR and HDR.
+Here is an HDR photo displayed in EDR and HDR modes. The metrics reveal HDR metadata extracted from the file, alongside the system EDR state.
 
 <p align="center">
-<img width="750" height="277" alt="simulated-image-sdr-hdr" src="https://github.com/user-attachments/assets/e05e83f6-433c-4339-8eb6-83380224d48a" />
+<img width="750" height="320" alt="swiftedr-image-example-sdr-hdr" src="https://github.com/user-attachments/assets/68f3f6cc-443e-40c7-b894-8a0af4643780" />
 </p>
 
 
