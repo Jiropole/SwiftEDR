@@ -54,7 +54,7 @@ The main display area is covered with an example of an `EDRCanvas`, i.e. a Swift
 Add SwiftEDR to your project using Swift Package Manager:
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Jiropole/SwiftEDR.git", from: "2.0.0")
+    .package(url: "https://github.com/Jiropole/SwiftEDR.git", from: "3.0.0")
 ]
 ``` 
 

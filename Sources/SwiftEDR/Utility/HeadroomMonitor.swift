@@ -28,7 +28,6 @@ public actor HeadroomMonitor {
     public init(delayRange: ClosedRange<TimeInterval> = 0.05...1.0) {
 #if os(iOS)
         // In iOS, there is no way to be notified when headroom changes,
-        // and on MacOS we miss changes in potential headroom without polling.
         // As a workaround, use a backoff repeater to poll for changes.
         self.repeater = BackoffRepeater(delayRange: delayRange)
         Task { [weak self] in
