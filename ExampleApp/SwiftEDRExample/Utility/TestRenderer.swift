@@ -49,8 +49,9 @@ struct TestRenderer {
 
                 let radius = (0.7 + sin((uObject + elapsed * 0.2) * 2 * .pi) * 0.3) * objectSize / 2
 
-                let origin = CGPoint(x: size.width * uObject,
-                                     y: yBase + heightPerColor * cos((uObject - 0.3 * sin((uColor + elapsed) * .pi / 20)) * 2 * .pi * 4))
+                let uHeight = uObject - 0.3 * sin((uColor + elapsed) * .pi / 20)
+                let originY = yBase + heightPerColor * cos(uHeight * 2 * .pi * 4)
+                let origin = CGPoint(x: size.width * uObject, y: originY)
 
                 let rect = CGRect(origin: .init(x: origin.x - radius,
                                                 y: origin.y - radius),

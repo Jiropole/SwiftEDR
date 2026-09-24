@@ -69,6 +69,11 @@ extension Profile {
         }
     }
 
+    /// Convenience variable that checks both `options` and `bloom`.
+    public var isBloomEnabled: Bool {
+        bloom.isActive && !options.isBloomMute
+    }
+
     /// A convenience function to get a modified (often simplified) version of the profile.
     public func replacing(mode: Mode? = nil, bloom: Bloom? = nil, maxHeadroom: CGFloat? = nil, options: Options? = []) -> Profile {
         Profile(mode: mode ?? self.mode,
@@ -155,17 +160,20 @@ extension Profile {
             self.rawValue = rawValue
         }
 
-        /// When enabled, uses a linear colorspace, rather than the default P3 colorspace.
+        /// Use a linear colorspace, rather than the default P3 colorspace.
         public static let linearColorSpace = Self(rawValue: 1 << 0)
 
-        /// When enabled with HDR mode, tones down the HDR brightness relative to nearby SDR content.
+        /// Tones down HDR brightness relative to nearby SDR content.
         public static let constrainedHDR = Self(rawValue: 1 << 1)
 
-        /// When enabled, only bloom highlights are drawn.
-        public static let bloomHighlightsOnly = Self(rawValue: 1 << 2)
+        /// Draw only the bloom effect, hiding the content.
+        public static let bloomSolo = Self(rawValue: 1 << 2)
+
+        /// Disables bloom effect entirely.
+        public static let bloomMute = Self(rawValue: 1 << 3)
 
         /// If set, enables default tone mapping. Experimental, not all that useful at the moment.
-        public static let toneMapDefault = Self(rawValue: 1 << 3)
+        public static let toneMapDefault = Self(rawValue: 1 << 4)
 
         public var isLinearColorSpace: Bool {
             get { contains(.linearColorSpace) }
@@ -177,9 +185,14 @@ extension Profile {
             set { if newValue { insert(.constrainedHDR) } else { remove(.constrainedHDR) } }
         }
 
-        public var isBloomHighlightsOnly: Bool {
-            get { contains(.bloomHighlightsOnly) }
-            set { if newValue { insert(.bloomHighlightsOnly) } else { remove(.bloomHighlightsOnly) } }
+        public var isBloomSolo: Bool {
+            get { contains(.bloomSolo) }
+            set { if newValue { insert(.bloomSolo) } else { remove(.bloomSolo) } }
+        }
+
+        public var isBloomMute: Bool {
+            get { contains(.bloomMute) }
+            set { if newValue { insert(.bloomMute) } else { remove(.bloomMute) } }
         }
 
         public var isToneMapDefault: Bool {

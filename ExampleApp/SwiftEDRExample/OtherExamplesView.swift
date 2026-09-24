@@ -44,7 +44,8 @@ struct OtherExamplesView: View {
                 }
                 .pickerStyle(.segmented)
 
-                PhotosPicker(selection: $selectedItem, matching: .any(of: [.images, .not(.screenshots), .not(.videos)])) {
+                PhotosPicker(selection: $selectedItem,
+                             matching: .any(of: [.images, .not(.screenshots), .not(.videos)])) {
                     Label("Select", systemImage: "photo.stack")
                         .buttonStyle(.borderedProminent)
                 }
@@ -106,7 +107,11 @@ private extension OtherExamplesView {
     }
 
     var edrMetricsView: some View {
-        Text("Headroom: \(palette.headroom.current, specifier: "%.2f") / \(palette.headroom.potential, specifier: "%.2f")\nAdaptive threshold: \(palette.effectiveBloomThreshold, specifier: "%.2f")")
+        Text(
+"""
+Headroom: \(palette.headroom.current, specifier: "%.2f") / \(palette.headroom.potential, specifier: "%.2f")
+Adaptive threshold: \(palette.effectiveBloomThreshold, specifier: "%.2f")
+""")
             .multilineTextAlignment(.trailing)
             .padding(4)
             .background {

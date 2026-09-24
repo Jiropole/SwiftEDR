@@ -103,13 +103,13 @@ private extension ContentView {
             HStack(spacing: 12) {
                 // Button to toggle bloom debugging.
                 Button {
-                    profile.options.isBloomHighlightsOnly.toggle()
+                    profile.options.isBloomSolo.toggle()
                 } label: {
                     Image(systemName: "ladybug.fill")
-                        .foregroundStyle(profile.options.isBloomHighlightsOnly ? Color.white : Color.black)
+                        .foregroundStyle(profile.options.isBloomSolo ? Color.white : Color.black)
                         .font(.title3)
                 }
-                
+
                 // Button to toggle bloom mode.
                 Button {
                     profile.bloom.mode = profile.bloom.mode == .color ? .luminance: .color

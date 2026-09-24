@@ -14,20 +14,15 @@ public struct BloomModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
         ZStack {
-            if palette.profile.bloom.isActive {
-                ZStack {
-                    // Layer the unmodified content.
-                    content
-                        .opacity(palette.profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
+            // Layer the unmodified content.
+            content
+                .opacity(palette.profile.options.isBloomSolo ? 0.0 : 1.0)
 
-                    // Extract a highlights layer from the content to be screened on top.
-                    content
-                        .modifier(HighlightsModifier())
-                        .blendMode(.plusLighter)
-                }
-            } else {
+            if palette.profile.isBloomEnabled {
+                // Extract a highlights layer from the content to be screened on top.
                 content
-                    .opacity(palette.profile.options.isBloomHighlightsOnly ? 0.0 : 1.0)
+                    .modifier(HighlightsModifier())
+                    .blendMode(.plusLighter)
             }
         }
     }
