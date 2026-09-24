@@ -159,7 +159,6 @@ The `Profile` model configures the primary EDR mode along with related behaviors
 
 Profile is composed of the following attributes:
 * `mode`, one of:
-    * `.sdrNonLinear`: Standard Dynamic Range with nonlinear P3 color value in the range [0, 1] + bloom. This will look the same as a basic, unadorned SwiftUI Canvas.
     * `.sdr`: Standard Dynamic Range with linear P3 color values in the range [0, 1]. This will look brighter than an unadorned SwiftUI Canvas.
     * `.edr`: Extended Dynamic Range with linear P3 color values in the range [0, 1]. This will normally look just like `.sdr`, but computed at higher bit depth.
     * `.hdr`: High Dynamic Range with with linear P3 color values in the range [0, ∞). If display is compatible and headroom is available, colors may display many times brighter than SDR.

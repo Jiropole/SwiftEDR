@@ -82,6 +82,9 @@ private extension ContentView {
                          objectSize: config.objectSize)
             .render()
         }
+        .overlay(alignment: .bottomTrailing) {
+            EDRMetricsView()
+        }
         .modifier(EDRModifier(profile: profile))
     }
 

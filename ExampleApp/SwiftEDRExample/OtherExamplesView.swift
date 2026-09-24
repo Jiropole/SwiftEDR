@@ -31,10 +31,8 @@ struct OtherExamplesView: View {
                 HStack {
                     imageMetricsView
                     Spacer()
-                    edrMetricsView
+                    EDRMetricsView()
                 }
-                .foregroundStyle(palette.rgbColor([1, 1, 1, 1], boost: palette.headroom.current * 0.25))
-                .font(.caption)
             }
 
             HStack {
@@ -106,27 +104,13 @@ private extension OtherExamplesView {
         }
     }
 
-    var edrMetricsView: some View {
-        Text(
-"""
-Headroom: \(palette.headroom.current, specifier: "%.2f") / \(palette.headroom.potential, specifier: "%.2f")
-Adaptive threshold: \(palette.effectiveBloomThreshold, specifier: "%.2f")
-""")
-            .multilineTextAlignment(.trailing)
-            .padding(4)
-            .background {
-                Color.black.opacity(0.4)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            }
-            .padding(4)
-    }
-
     var imageMetricsView: some View {
         Group {
             if isShowingImage, let selectedSource {
                 let metadata = selectedSource.embeddedMetadata
                 Text("\(metadata.format.rawValue)\nHeadroom: \(metadata.headroom, specifier: "%.2f")")
                     .multilineTextAlignment(.leading)
+                    .font(.caption)
                     .padding(4)
                     .background {
                         Color.black.opacity(0.4)
