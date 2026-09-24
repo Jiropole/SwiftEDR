@@ -60,7 +60,7 @@ private extension Palette {
                                   saturation: components[1],
                                   brightness: min(1, components[2]),
                                   alpha: components[3])
-        let effectiveBoost = boost * max(1, components[2] - 1)
+        let effectiveBoost = boost * max(1, components[2])
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         p3Color.getRed(&r, green: &g, blue: &b, alpha: &a)
         return rgbColor([r, g, b, a], space: space, boost: effectiveBoost)

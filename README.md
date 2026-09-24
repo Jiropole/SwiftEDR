@@ -1,5 +1,5 @@
 # SwiftEDR
-![Static Badge](https://img.shields.io/badge/Platforms-iOS26_%7C_visionOS26_%7C_macOS26-blue%3Flogo%3Dgithub)
+![Static Badge](https://img.shields.io/badge/Platforms-iOS26_%7C_macOS26_%7C_visionOS26-green?logo=swift) ![Static Badge](https://img.shields.io/badge/Dependencies-none-blue)
 
 A clean, convenient and performant mini-framework to bring EDR (extended dynamic range) and HDR (high dynamic range) display to any SwiftUI view.
 
@@ -72,12 +72,15 @@ There are several ways to leverage this package:
 * Replace instances of SwiftUI's `Image` with `EDRImage` for cross-platform display of data-based images. 
 
 ### EDRModifier View Modifier
-This view modifier makes it straightforward to apply EDR behaviors, defined by a Profile, to a specific view.
+This view modifier makes it straightforward to apply EDR behaviors, defined by a Profile, to a given view tree. 
 
 ```swift
-AnimatedHeroView()
-    // Make it cinematic
-    .modifier(EDRModifier(profile: .Defaults.hdrBloom))
+ZStack {
+    SoftLightningView()
+    AnimatedHeroView()
+}
+// Make them cinematic
+.modifier(EDRModifier(profile: .Defaults.hdrBloom))
 ```
 
 Not all SwiftUI views will deal gracefully with HDR colors. However, it does work for shapes, so if you run into issues, one workaround is to display a shape using HDR color, masked to the target view.
@@ -96,8 +99,9 @@ TimelineView(.animation(minimumInterval: 1 / 30.0, paused: !isAnimating)) { time
                              elapsed: timeline.date.timeIntervalSince(startDate))
         .render()
     }
-    .modifier(EDRModifier(profile: mySmoothBurstHDRProfile))   // Don't forget the modifier
 }
+// Apply the modifier as for any view
+.modifier(EDRModifier(profile: mySmoothBurstHDRProfile))
 ```
 
 ### EDRImage View
@@ -126,7 +130,7 @@ Palette is composed of the following attributes:
 
 Below are some examples of using the palette to generate colors calibrated for the mode and dynamic range. Note the use of the `boost` parameter when requesting an HDR color. Especially if you are using nonlinear color mode (the default), use `boost` in lieu of premultiplying the RGB color components, in order to avoid color washout in HDR. 
 
-Alternately, if you are using HSV colors, the Value may exceed 1.0 to safely push into the HDR range. If `boost` is also specified, the effective boost will be `boost * max(1, value - 1)`. 
+Alternately, if you are using HSV colors, the Value may exceed 1.0 to safely push into the HDR range. If `boost` is also specified, the effective boost will be `boost * max(1, value)`. 
 
 ```swift
 @Environment(\.edrPalette) private var palette
