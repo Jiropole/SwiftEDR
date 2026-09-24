@@ -29,6 +29,7 @@ public struct EDRImage: View {
 
     @Environment(\.edrPalette) private var palette
     @State private var aspectRatio: CGSize = CGSize(width: 1, height: 1)
+    @State private var lastMode: Profile.Mode?
 
 #if os(iOS) || os(visionOS)
     @State private var processedImage: UIImage?
@@ -62,19 +63,22 @@ public struct EDRImage: View {
             }
         }
         .task(id: source) {
-            await processImageData()
+            await processImageData(sourceChanged: true)
         }
-        .task(id: palette.profile) {
-            await processImageData()
+        .task(id: palette.profile.mode) {
+            await processImageData(sourceChanged: false)
         }
     }
 }
 
 private extension EDRImage {
-    private func processImageData() async {
-        guard case .data(let imageData) = source else { return }
+    private func processImageData(sourceChanged: Bool) async {
+        guard case .data(let imageData) = source,
+              (sourceChanged || palette.profile.mode != lastMode) else { return }
 
+        lastMode = palette.profile.mode
         let wantsHDR = metadata.format != .sdr && palette.profile.mode == .hdr
+
         #if os(iOS)
         // Configure iOS HDR Engine
         var config = UIImageReader.Configuration()

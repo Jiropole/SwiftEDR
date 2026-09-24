@@ -34,8 +34,8 @@ struct TestRenderer {
         context.blendMode = .plusLighter
 
         let colors = hsvColors
-        let objectsPerColor = objectCount / rgbColors.count
-        let heightPerColor = (size.height - objectSize) / CGFloat(rgbColors.count + 1)
+        let objectsPerColor = objectCount / colors.count
+        let heightPerColor = (size.height - objectSize) / CGFloat(colors.count + 1)
         let viewRadius = min(size.width, size.height) / 2
         let objectSize = self.objectSize * viewRadius
 
