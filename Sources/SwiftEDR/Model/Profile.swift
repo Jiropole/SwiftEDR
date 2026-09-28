@@ -144,14 +144,6 @@ extension Profile {
         public static let none = Bloom(radius: 0.035, threshold: 1.0, kneeWidth: 0.1, intensity: 0.0)
     }
 
-    /// Future thing.
-    public struct ColorInfo {
-        let colorSpace: CGColorSpace
-        let bitmapInfo: UInt32
-        let bitsPerComponent: Int
-        // TODO: Additional support for export encoding...
-    }
-
     /// Special options that can be used to affect rendering.
     public struct Options: OptionSet, BaseModel {
         public let rawValue: Int

@@ -8,5 +8,5 @@
 import Foundation
 import SwiftUI
 
-protocol BaseModel: Sendable, Equatable, Codable {
+public protocol BaseModel: Sendable, Equatable, Codable {
 }
