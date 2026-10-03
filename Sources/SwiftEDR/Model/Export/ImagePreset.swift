@@ -8,7 +8,7 @@
 import AVFoundation
 import VideoToolbox
 
-public enum ImagePreset {
+public enum ImagePreset: MediaPreset {
     public typealias HDRTransfer = VideoPreset.HDRTransfer
 
     /// Specifies an SDR image from an 8-bit standard input buffer to be encoded as a PNG file.
@@ -51,7 +51,6 @@ public enum ImagePreset {
         }
     }
 
-    /// Appropriate file universal type.
     public var utType: UTType {
         switch self {
         case .png:
@@ -63,7 +62,6 @@ public enum ImagePreset {
         }
     }
 
-    /// Appropriate file extension.
     public var fileExtension: String {
         switch self {
         case .png:

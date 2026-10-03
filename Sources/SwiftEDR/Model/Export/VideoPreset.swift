@@ -8,7 +8,7 @@
 import AVFoundation
 import VideoToolbox
 
-public enum VideoPreset {
+public enum VideoPreset: MediaPreset {
     /// Specifies an SDR video stream from an 8-bit standard input buffer to be encoded with `codec`.
     case sdr8Bit(codec: Codec = .h264)
 
@@ -20,35 +20,52 @@ public enum VideoPreset {
 
     /// Convenience accessor to wrap typical export configuration and buffer setup values.
     /// See `bitrateForQuality(:::)` to select ideal values for `bitrate`.
-    public func setupInfo(withBitrate bitrate: Int) -> SetupInfo {
+    public func setupInfoWithFramerate(framerate: CGFloat = 30,
+                                       bitrate: Int = 10 * 1024,
+                                       keyframeInterval: TimeInterval = 2.0) -> SetupInfo {
         var hdrBitmapInfo: UInt32 {
             (CGImageAlphaInfo.premultipliedLast.rawValue |
              CGImageByteOrderInfo.order16Little.rawValue |
              CGBitmapInfo.floatComponents.rawValue)
         }
-
+        let avProperties = adapterPropertiesWithFramerate(framerate: framerate,
+                                                          bitrate: bitrate,
+                                                          keyframeInterval: keyframeInterval)
         switch self {
         case .sdr8Bit:
             return .init(bitmapInfo: (CGImageAlphaInfo.premultipliedFirst.rawValue |
                                       CGImageByteOrderInfo.order32Big.rawValue),
                          pixelFormat: kCVPixelFormatType_32ARGB,
                          bitsPerComponent: 8,
-                         adapterProperties: adapterProperties(withBitrate: bitrate),
+                         adapterProperties: avProperties,
                          colorSpace: colorSpace)
         case .sdr16Bit:
             return .init(bitmapInfo: hdrBitmapInfo,
                          pixelFormat: kCVPixelFormatType_64RGBAHalf,
                          bitsPerComponent: 16,
-                         adapterProperties: adapterProperties(withBitrate: bitrate),
+                         adapterProperties: avProperties,
                          colorSpace: colorSpace)
 
-        case .hdr(let transfer):
+        case .hdr:
             return .init(bitmapInfo: hdrBitmapInfo,
                          pixelFormat: kCVPixelFormatType_64RGBAHalf,
                          bitsPerComponent: 16,
-                         adapterProperties: adapterProperties(withBitrate: bitrate),
+                         adapterProperties: avProperties,
                          colorSpace: colorSpace)
         }
+    }
+
+    /// Convenience accessor to wrap typical output properties for use with e.g. with `AVAssetWriterInputPixelBufferAdaptor`.
+    public func adapterPropertiesWithFramerate(framerate: CGFloat = 30,
+                                               bitrate: Int = 10 * 1024,
+                                               keyframeInterval: TimeInterval = 2.0) -> [String: Any] {
+        [
+            AVVideoCodecKey: codec,
+            AVVideoColorPropertiesKey: colorProperties,
+            AVVideoCompressionPropertiesKey: compressionPropertiesWithFramerate(framerate: framerate,
+                                                                                bitrate: bitrate,
+                                                                                keyframeInterval: keyframeInterval)
+        ]
     }
 
     // MARK: - Setup Guts
@@ -121,10 +138,37 @@ public enum VideoPreset {
         }
     }
 
-    /// Extra compression properties, e.g. for PQ transfer.
-    public var extraCompressionProperties: [String: Any] {
-        guard case .hdr(let transfer) = self, transfer == .pq else { return [:] }
-        return [
+    /// AVFoundation compression properties to control video encoding or metadata.
+    public func compressionPropertiesWithFramerate(framerate: CGFloat = 30,
+                                                   bitrate: Int = 10 * 1024,
+                                                   keyframeInterval: TimeInterval = 2.0) -> [String: Any] {
+        func adjustedKeyframeInterval(_ sourceInterval: TimeInterval) -> CGFloat {
+            switch self {
+            case .hdr:  // HDR content needs frequent color sync points (1.0s max)
+                return min(1.0, sourceInterval)
+            default:    // Low-framerate streams (e.g. 5fps) need frequent keyframes so UI scrubbing isn't broken
+                return framerate < 15.0 ? min(1.0, sourceInterval) : sourceInterval
+            }
+        }
+        var compressionProps: [String: Any] = [
+            AVVideoProfileLevelKey: profileLevel,
+            AVVideoAverageBitRateKey: NSNumber(value: bitrate),
+            AVVideoExpectedSourceFrameRateKey: NSNumber(value: framerate),
+            AVVideoAllowFrameReorderingKey: true as CFBoolean,
+        ]
+        if keyframeInterval > 0 {
+            let keyframeInterval = adjustedKeyframeInterval(keyframeInterval)
+            compressionProps = compressionProps.merging([
+                // Frame count target: framerate * interval
+                AVVideoMaxKeyFrameIntervalKey: NSNumber(value: Int(framerate * keyframeInterval)),
+                // Absolute duration anchor fallback (important for variable frame rate sources)
+                AVVideoMaxKeyFrameIntervalDurationKey: NSNumber(value: keyframeInterval),
+            ]) { _, new in new }
+        }
+
+        guard case .hdr(let transfer) = self, transfer == .pq else { return compressionProps }
+
+        return compressionProps.merging([
             // Standard 1,000-nit HDR10 mastering metadata
             // using literal string keys for SMPTE ST 2086 mastering display metrics.
             kCVImageBufferMasteringDisplayColorVolumeKey as String: [
@@ -139,20 +183,7 @@ public enum VideoPreset {
                 "MaxCLL": 1000,   // Max Content Light Level
                 "MaxFALL": 400    // Max Frame Average Light Level
             ]
-        ]
-    }
-
-    /// Convenience accessor to wrap typical output properties for use with e.g. with `AVAssetWriterInputPixelBufferAdaptor`.
-    public func adapterProperties(withBitrate bitrate: Int) -> [String: Any] {
-        [
-            AVVideoCodecKey: codec,
-            AVVideoColorPropertiesKey: colorProperties,
-            AVVideoCompressionPropertiesKey: [
-                AVVideoProfileLevelKey: profileLevel,
-                AVVideoAverageBitRateKey: NSNumber(value: bitrate)
-            ]
-                .merging(extraCompressionProperties) { _, new in new }
-        ]
+        ]) { _, new in new }
     }
 
     // MARK: - Pixel Buffer Tagging
@@ -225,6 +256,14 @@ public enum VideoPreset {
         let calculatedBitrate = totalPixelsPerSecond * targetBpp * framerateScalar
 
         return Int(calculatedBitrate)
+    }
+
+    public var utType: UTType {
+        .movie
+    }
+
+    public var fileExtension: String {
+        "mp4"
     }
 }
 
