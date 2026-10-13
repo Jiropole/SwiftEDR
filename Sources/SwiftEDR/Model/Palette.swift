@@ -51,7 +51,8 @@ extension Palette {
         return colors.map { rgbColor($0, space: space, boost: boost) }
     }
 
-    public func profileCorrectedAlpha(_ alpha: CGFloat) -> CGFloat {
+    /// Profile correct alpha value, e.g. for View `.opacity()`. Do not use this for specifying colors, which will already be alpha corrected.
+    public func alpha(_ alpha: CGFloat) -> CGFloat {
         guard !profile.options.isLinearColorSpace, profile.mode != .sdr else { return alpha }
         return Self.extendedGammaToLinear(alpha)
     }

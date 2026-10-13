@@ -8,7 +8,7 @@ SwiftEDR is entirely hand coded in SwiftUI and MSL. AI fulfilled a limited role 
 ## Platform Support
 * iOS: Full support for iOS 26+, but high dynamic range not available on simulators.
 * MacOS: Full support for MacOS 26+.
-* VisionOS: Full-ish support for VisionOS 26+. I say "full-ish" support because there may be VisionOS amenities I'm not aware of.
+* VisionOS: Full-ish support for VisionOS 26+; there may be VisionOS amenities of which the author is unaware.
 
 ## Features
 SwiftEDR simplifies the somewhat intricate details related to using extended and high dynamic range bit depths and color spaces within SwiftUI. It also offers a convenient Bloom effect.
@@ -158,7 +158,7 @@ When using a nonlinear color mode (the default), it was experimentally concluded
 
 In particular if you target both display and bitmap output, follow these steps:
 1. Acquire colors from the Palette object, as described above.
-2. Acquire view opacity values from the Palette object, as shown below.
+2. Acquire view opacity values from the Palette object, as shown below. Do not use this for specifying colors, which will already be alpha corrected.
 3. Apply `.drawingGroup(::)` to the outermost view that may contain subviews or colors of varying opacity.
 
 ```swift
@@ -168,7 +168,7 @@ var colorChoiceButton: some View {
     HStack {
         unselectedOption
             // Safe for use with active profile!
-            .opacity(edrPalette.profileCorrectedAlpha(0.33))
+            .opacity(palette.alpha(0.33))
         selectedOption
     }
     // Help ensure that dark colors are consistent between display or bitmap rendering targets.
@@ -176,7 +176,7 @@ var colorChoiceButton: some View {
 }
 ```
 
-If you are only using SwiftEDR for display purposes, this is likely not a critical step, yet one I suspect has best fielity with the intention of the alpha value.
+If you are only using SwiftEDR for display purposes, this is likely not a critical step, yet one I suspect has best fidelity with the intention of the alpha value.
 
 
 ### 📺 Profile Model 
