@@ -42,12 +42,10 @@ public enum ImagePreset: MediaPreset {
     /// Retrieve a standard color space appropriate for the preset.
     public var colorSpace: CGColorSpace {
         switch self {
-        case .png, .jpg:
-            return CGColorSpace(name: CGColorSpace.displayP3)!
-        case .sdrHeic:
-            return CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)!
         case .hdrHeic(_, let transfer):
             return transfer.colorSpace
+        default:
+            return CGColorSpace(name: CGColorSpace.displayP3)!
         }
     }
 
