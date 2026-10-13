@@ -38,20 +38,6 @@ Here is an HDR photo displayed in EDR and HDR modes. The metrics reveal HDR meta
 #### What It Isn't
 SwiftEDR doesn't magically make any view brighter and more vivid – that still takes careful design decisions. It also isn't a color production studio in a package. It merely organizes the sprawling details around bit depths and dynamic ranges into a concise API surface, so you can focus on tuning EDR for your own use cases, without leaving the speed and comfort of SwiftUI. 
 
-### Example App
-Take a peek at what kind of visual results you can expect by opening the SwiftEDRExample app and running the interactive demo on Mac or a physical device. The demo UI controls are a good way to study the visual behavior of the various profile modes and effects. To access all controls, run on an iPad or Mac device.
-
-There may be some difference between SDR and EDR modes with nonlinear color space (the default). You should definitely see a difference in HDR mode, as the demo app will request maximum headroom, and the drawing algorithm will use colors far hotter than the SDR maximum.
-
-The main display area is covered with an example of an `EDRCanvas`, i.e. a SwiftEDR-powered Canvas view. For the hovering icons, above it, a legend:
-* "ladybug" – Displays the bloom effect by itself, in order to more easily tune it.
-* "dot-wheel" - Enables component bloom thresholding, as opposed to luminance thresholding.
-* "constrain" - Enables system-throttled HDR headroom; for example, to avoid overpowering adjacent content or to save energy.
-* "flat-slope" - Enables linear color space, which tends to make dark areas brighter with lower contrast.
-* "photo" - Displays an example of applying `EDRModifier` to arbitrary, non-Canvas views.
-* "back-circle" – Reset all parameters.
-* "pause/play" – Play or pause animation. 
-
 ## Quick Start
 Add SwiftEDR to your project using Swift Package Manager:
 ```swift
@@ -115,8 +101,42 @@ var body: some View {
         .modifier(EDRModifier(profile: .Defaults.hdr))    
 }
 ```
- 
+
+### Example App
+Take a peek at what kind of visual results you can expect by opening the SwiftEDRExample app and running the interactive demo on Mac or physical device. The demo UI controls are a good way to study the visual behavior of the various profile modes and effects. To access all controls, run on an iPad or Mac device.
+
+There may be some difference between SDR and EDR modes with nonlinear color space (the default). You should definitely see a difference in HDR mode, as the demo app will request maximum headroom, and the drawing algorithm will use colors far hotter than the SDR maximum.
+
+The main display area is covered with an example of an `EDRCanvas`, i.e. a SwiftEDR-powered Canvas view. For the hovering icons, above it, a legend:
+* "ladybug" – Displays the bloom effect by itself, in order to more easily tune it.
+* "dot-wheel" - Enables component bloom thresholding, as opposed to luminance thresholding.
+* "constrain" - Enables system-throttled HDR headroom; for example, to avoid overpowering adjacent content or to save energy.
+* "flat-slope" - Enables linear color space, which tends to make dark areas brighter with lower contrast.
+* "photo" - Displays an example of applying `EDRModifier` to arbitrary, non-Canvas views.
+* "back-circle" – Reset all parameters.
+* "pause/play" – Play or pause animation. 
+
 ## Core Concepts
+
+### 📺 Profile Model 
+The `Profile` model configures the primary EDR mode along with related behaviors and effects. Use `Profile.Defaults` to quickly select a preset, or customize your own effects and display attributes. It may be desirable to tune the Bloom effect, in particular, to your specific content and desired aesthetics.
+
+Profile is composed of the following attributes:
+* `mode`, one of:
+    * `.sdr`: Standard Dynamic Range with linear P3 color values in the range [0, 1]. This will look brighter than an unadorned SwiftUI Canvas.
+    * `.edr`: Extended Dynamic Range with linear P3 color values in the range [0, 1]. This will normally look just like `.sdr`, but computed at higher bit depth.
+    * `.hdr`: High Dynamic Range with with linear P3 color values in the range [0, ∞). If display is compatible and headroom is available, colors may display many times brighter than SDR.
+* `bloom`, described below.
+* `maxHeadroom` – Constrains the maximum requested headroom in HDR mode. Even values as low as 2-5 can be striking. Use this for more specific control than offered by the .constrainedHDR option. Note that contained Image or related views may still request higher headroom.
+* `options`, any of:
+    * `.constrainedHDR` – enables system-throttled HDR brightness, for example to avoid overpowering adjacent content or to reduce energy usage. 
+    * `.linearColorSpace` – uses linear color space instead of the default nonlinear space. 
+    * `.bloomHighlightsOnly` – show the bloom effect alone, hiding the content, for tuning.
+
+#### Color Linearity
+SwiftEDR offers either nonlinear or linear color modes, according to whether the Profile option `.linearColorSpace` is included. This determines how Color values are computed by the `Palette` model. The default is to vend nonlinear colors, which results in a familiar color result that better matches the human perceptual system, i.e. has a gamma curve.  Linear color is better for math-based color applications, or when the app applies its own tone mapping. 
+
+This setting has less to do with how color math is performed. For EDR and HDR modes, SwiftEDR color math is performed in linear space, which is best for accurately rendering blends and effects. Only in SDR mode with nonlinear space is blending nonlinear, which matches how a basic SwiftUI Canvas behaves.
 
 ### 🎨 Palette Model
 The `Palette` model has two roles:
@@ -128,7 +148,7 @@ Palette is composed of the following attributes:
 * `headroom`: Continuously variable headroom.
 
 #### Acquiring Colors
-Below are some examples of using the palette to generate colors calibrated for the mode and dynamic range. Note the use of the `boost` parameter when requesting an HDR color. Especially if you are using nonlinear color mode (the default), use `boost` in lieu of premultiplying the RGB color components, in order to avoid color washout in HDR. 
+Below are some examples of using the palette to generate colors calibrated for the mode and dynamic range. Note the use of the `boost` parameter when requesting an HDR color. Especially when using nonlinear color mode (the default), use `boost` in lieu of premultiplying the RGB color components, in order to avoid color washout in HDR. 
 
 Alternately, if you are using HSV colors, the Value may exceed 1.0 to safely push into the HDR range. If `boost` is also specified, the effective boost will be `boost * max(1, value)`. 
 
@@ -176,28 +196,7 @@ var colorChoiceButton: some View {
 }
 ```
 
-If you are only using SwiftEDR for display purposes, this is likely not a critical step, yet one I suspect has best fidelity with the intention of the alpha value.
-
-
-### 📺 Profile Model 
-The `Profile` model configures the primary EDR mode along with related behaviors and effects. Use `Profile.Defaults` to quickly select a preset, or customize your own effects and display attributes. It may be desirable to tune the Bloom effect, in particular, to your specific content and desired aesthetics.
-
-Profile is composed of the following attributes:
-* `mode`, one of:
-    * `.sdr`: Standard Dynamic Range with linear P3 color values in the range [0, 1]. This will look brighter than an unadorned SwiftUI Canvas.
-    * `.edr`: Extended Dynamic Range with linear P3 color values in the range [0, 1]. This will normally look just like `.sdr`, but computed at higher bit depth.
-    * `.hdr`: High Dynamic Range with with linear P3 color values in the range [0, ∞). If display is compatible and headroom is available, colors may display many times brighter than SDR.
-* `bloom`, described below.
-* `maxHeadroom` – Constrains the maximum requested headroom in HDR mode. Even values as low as 2-5 can be striking. Use this for more specific control than offered by the .constrainedHDR option. Note that contained Image or related views may still request higher headroom.
-* `options`, any of:
-    * `.constrainedHDR` – enables system-throttled HDR brightness, for example to avoid overpowering adjacent content or to reduce energy usage. 
-    * `.linearColorSpace` – uses linear color space instead of the default nonlinear space. 
-    * `.bloomHighlightsOnly` – show the bloom effect alone, hiding the content, for tuning.
-
-#### Color Linearity
-SwiftEDR offers either nonlinear or linear color modes, according to whether the Profile option `.linearColorSpace` is included. This determines how Color values are computed by the `Palette` model. The default is to vend nonlinear colors, which results in a familiar color result that better matches the human perceptual system, i.e. has a gamma curve.  Linear color is better for math-based color applications, or when the app applies its own tone mapping. 
-
-This setting has less to do with how color math is performed. For EDR and HDR modes, SwiftEDR color math is performed in linear space, which is best for accurately rendering blends and effects. Only in SDR mode with nonlinear space is blending nonlinear, which matches how a basic SwiftUI Canvas behaves.
+If you are only using SwiftEDR for display purposes, this is a recommended but not critical practice.
 
 ### 🗿 Headroom Model
 The `Headroom` model is composed of the following attributes:
@@ -308,6 +307,15 @@ if imageSource.format != .sdr {
     iosImageView.layer.contentsFormat = .RGBA16Float
 }
 ```
+
+### File Export
+On my own project I recently implemented image and video export for SwiftEDR-based view trees. I've included some helper models that I found useful for this purpose. I'm not sure if they belong in this package long-term, but since I don't intend to try to generalize EDR image and video export functions at this time, I'll just leave them here for now. If future interest demands, I might look at expanding this side of things.
+
+The notable objects to look at are `ImagePreset` and `VideoPreset`. Both models are intended to vend a variety of values useful for rendering and writing EDR view trees to bitmap or file, for example:
+* Universal types and path extensions
+* Export compatible color spaces
+* Image export properties for use with the likes of `CGImageDestination`
+* Color, HDR and pixel buffer properties for use with the likes of `AVAssetWriterInput`
 
  
  # License
