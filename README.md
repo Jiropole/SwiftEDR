@@ -178,7 +178,7 @@ When using a nonlinear color mode (the default), it was experimentally concluded
 
 In particular if you target both display and bitmap output, follow these steps:
 1. Acquire colors from the Palette object, as described above.
-2. Acquire view opacity values from the Palette object, as shown below. Do not use this for specifying colors, which will already be alpha corrected.
+2. Acquire view opacity values from the Palette object, as shown below. (Do not use this for specifying colors.)
 3. Apply `.drawingGroup(::)` to the outermost view that may contain subviews or colors of varying opacity.
 
 ```swift

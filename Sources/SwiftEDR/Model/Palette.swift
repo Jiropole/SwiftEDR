@@ -90,7 +90,7 @@ private extension Palette {
             return boostedComponents(rgb, boost: boost) + [components[3]]
         }
         let gammaRGB = rgb.map({ Self.extendedGammaToLinear($0) })
-        return boostedComponents(gammaRGB, boost: boost) + [pow(components[3], 2.2)]
+        return boostedComponents(gammaRGB, boost: boost) + [components[3]]
     }
 
     /// Compute boosted components for R, G, B.
