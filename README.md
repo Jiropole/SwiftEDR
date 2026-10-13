@@ -127,7 +127,7 @@ Palette is composed of the following attributes:
 * `profile`: The active Profile.
 * `headroom`: Continuously variable headroom.
 
-
+#### Acquiring Colors
 Below are some examples of using the palette to generate colors calibrated for the mode and dynamic range. Note the use of the `boost` parameter when requesting an HDR color. Especially if you are using nonlinear color mode (the default), use `boost` in lieu of premultiplying the RGB color components, in order to avoid color washout in HDR. 
 
 Alternately, if you are using HSV colors, the Value may exceed 1.0 to safely push into the HDR range. If `boost` is also specified, the effective boost will be `boost * max(1, value)`. 
@@ -144,15 +144,40 @@ var hdrBlue: Color {
     // Do not premultiply RGB color values to take advantage of HDR headroom.
     // Instead use boost: safe for use with active profile!
     let hdrPower = palette.headroom.current * 0.67
-    return palette.rgbColor([0.1, 0.2, 1.0, 1], boost: hdrPower)    
+    return palette.rgbColor([0.1, 0.2, 1.0, 1.0], boost: hdrPower)    
 }
 
 var hdrRed: Color {
     // For HSV color, it is safe to drive the boost with Value > 1.0.
-    return palette.hsvColor([0.0, 1.0, 4.0, 1])    
+    return palette.hsvColor([0.0, 1.0, 4.0, 1.0])    
 }
-
 ```
+
+#### Acquiring Opacity Values
+When using a nonlinear color mode (the default), it was experimentally concluded that alpha correction is required to avoid minor discrepancies between the SwiftUI color pipelines for display versus bitmap rendering. The differences are subtle but most noticeable with dark color tones. Luckily, the solution requires more explanation than code.
+
+In particular if you target both display and bitmap output, follow these steps:
+1. Acquire colors from the Palette object, as described above.
+2. Acquire view opacity values from the Palette object, as shown below.
+3. Apply `.drawingGroup(::)` to the outermost view that may contain subviews or colors of varying opacity.
+
+```swift
+@Environment(\.edrPalette) private var palette
+
+var colorChoiceButton: some View {
+    HStack {
+        unselectedOption
+            // Safe for use with active profile!
+            .opacity(edrPalette.profileCorrectedAlpha(0.33))
+        selectedOption
+    }
+    // Help ensure that dark colors are consistent between display or bitmap rendering targets.
+    .drawingGroup(opaque: true, colorMode: palette.profile.renderMode)
+}
+```
+
+If you are only using SwiftEDR for display purposes, this is likely not a critical step, yet one I suspect has best fielity with the intention of the alpha value.
+
 
 ### 📺 Profile Model 
 The `Profile` model configures the primary EDR mode along with related behaviors and effects. Use `Profile.Defaults` to quickly select a preset, or customize your own effects and display attributes. It may be desirable to tune the Bloom effect, in particular, to your specific content and desired aesthetics.
