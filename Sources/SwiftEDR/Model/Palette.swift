@@ -51,7 +51,7 @@ extension Palette {
         return colors.map { rgbColor($0, space: space, boost: boost) }
     }
 
-    /// Profile correct alpha value, e.g. for View `.opacity()`. Do not use this for specifying colors, which will already be alpha corrected.
+    /// Profile correct alpha value, e.g. for View `.opacity()`. Do not use this for specifying colors.
     public func alpha(_ alpha: CGFloat) -> CGFloat {
         guard !profile.options.isLinearColorSpace, profile.mode != .sdr else { return alpha }
         return Self.extendedGammaToLinear(alpha)
@@ -83,14 +83,13 @@ private extension Palette {
             .headroom(min(profile.maxHeadroom, headroom.potential))
     }
 
-    /// Introduce perceptual tonality to linear magnitude components for R, G, B.
+    /// Convert color in perceptual space to linear magnitude components.
     func profileCorrectedComponents(_ components: [CGFloat], boost: CGFloat = 1.0) -> [CGFloat] {
-        let rgb = Array(components.prefix(3))
         guard !profile.options.isLinearColorSpace, profile.mode != .sdr else {
-            return boostedComponents(rgb, boost: boost) + [components[3]]
+            return boostedComponents(Array(components.prefix(3)), boost: boost) + [components[3]]
         }
-        let gammaRGB = rgb.map({ Self.extendedGammaToLinear($0) })
-        return boostedComponents(gammaRGB, boost: boost) + [components[3]]
+        let linearRGBA = components.map({ Self.extendedGammaToLinear($0) })
+        return boostedComponents(Array(linearRGBA.prefix(3)), boost: boost) + [linearRGBA[3]]
     }
 
     /// Compute boosted components for R, G, B.
