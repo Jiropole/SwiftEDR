@@ -15,18 +15,19 @@ using namespace metal;
                                                    float kneeWidth,
                                                    float premultiplier) {
     // Grab the sharp base canvas pixel
-    half4 color = layer.sample(position) * premultiplier;
+    half4 color = layer.sample(position);
+    half3 rgb = color.rgb * premultiplier;
 
     // Determine perceived luminance using standard P3/sRGB weights
-    half luminance = dot(color.rgb, half3(0.2126h, 0.7152h, 0.0722h));
+    half luminance = dot(rgb, half3(0.2126h, 0.7152h, 0.0722h));
 
     // Smoothstep soft knee into full bloom weight
     float lowBound = threshold - kneeWidth;
     float highBound = threshold + kneeWidth;
     half bloomWeight = half(smoothstep(lowBound, highBound, float(luminance)));
 
-    // Final value is the original color scaled by bloom weight.
-    return color.rgba * bloomWeight;
+    // Final value is the premultiplied color scaled by bloom weight.
+    return half4(rgb * bloomWeight, color.a);
 }
 
 [[ stitchable ]] half4 extractComponentOverbrights(float2 position,
@@ -35,15 +36,16 @@ using namespace metal;
                                                    float kneeWidth,
                                                    float premultiplier) {
     // Grab the sharp base canvas pixel
-    half4 color = layer.sample(position) * premultiplier;
+    half4 color = layer.sample(position);
+    half3 rgb = color.rgb * premultiplier;
 
     // Smoothstep soft knee into full bloom weight
     float lowBound = threshold - kneeWidth;
     float highBound = threshold + kneeWidth;
-    half3 bloomWeight = smoothstep(lowBound, highBound, color.rgb);
+    half3 bloomWeight = smoothstep(lowBound, highBound, rgb);
 
     // Final value is the original color scaled by bloom weight.
-    return half4(color.rgb * bloomWeight, color.a);
+    return half4(rgb * bloomWeight, color.a);
 }
 
 

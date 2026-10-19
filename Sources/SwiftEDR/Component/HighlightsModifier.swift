@@ -27,9 +27,6 @@ public struct HighlightsModifier: ViewModifier {
             // Restore original scale
             .scaleEffect(4.0)
 
-            // Scale the intensity of blurred highlights.
-            .colorMultiply(multiplierColor)
-
             // Keep viewRadius in sync.
             .onGeometryChange(for: CGSize.self, of: \.size) { viewSize in
                 self.viewRadius = min(viewSize.width, viewSize.height)
@@ -50,11 +47,5 @@ public struct HighlightsModifier: ViewModifier {
                 .float(palette.profile.bloom.intensity)
             )
         }
-    }
-
-    var multiplierColor: Color {
-        palette.rgbColor([palette.profile.bloom.intensity,
-                          palette.profile.bloom.intensity,
-                          palette.profile.bloom.intensity, 1])
     }
 }

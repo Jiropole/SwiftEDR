@@ -63,7 +63,7 @@ private extension Palette {
     /// If the value component is greater than one, it is treated as HDR boost.
     func hsvColor(_ components: [CGFloat], space: CGColorSpace, boost: CGFloat = 1.0) -> Color {
         let p3Color = NativeColor(hue: components[0],
-                                  saturation: components[1],
+                                  saturation: min(1, components[1]),
                                   brightness: min(1, components[2]),
                                   alpha: components[3])
         let effectiveBoost = boost * max(1, components[2])

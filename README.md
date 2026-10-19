@@ -220,6 +220,8 @@ Increased headroom doesn't change the brightness of a view on its own. Apps must
 ### 🌟 Bloom Effect
 Bloom is a cinematic effect that models bright areas of the scene as though they were light emissive. It is most useful for HDR, but SwiftEDR supports the effect in any EDR mode.
 
+_Note: the Bloom effect is not presently recommended if you use SwiftEDR for both display and bitmap targets, as it is unable to guarantee a consistent result between targets. Additional work on this issue was not deemed justifiable at this time._
+
 The current bloom implementation isolates luminous highlights in order to blur and blend them according to several parameters:
 * `radius`: how far highlights may spread.
 * `intensity`: how much the Bloom result is mixed back into the content.
