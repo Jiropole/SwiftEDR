@@ -193,21 +193,29 @@ public enum VideoPreset: MediaPreset {
     ///   - pixelBuffer: Pixel buffer to be tagged.
     ///   - linearColor: Determines the transfer function between input and output buffers. Default: true.
     public func tag(pixelBuffer: CVPixelBuffer, linearColor: Bool) {
-        let transferFunction = (linearColor
-                                ? kCVImageBufferTransferFunction_Linear
-                                : kCVImageBufferTransferFunction_ITU_R_709_2)
         switch self {
         case .sdr8Bit, .sdr16Bit:
+            let transferFunction = (linearColor
+                                    ? kCVImageBufferTransferFunction_Linear
+                                    : kCVImageBufferTransferFunction_ITU_R_709_2)
+            CVBufferSetAttachment(pixelBuffer, kCVImageBufferTransferFunctionKey,
+                                  transferFunction as CFString, .shouldPropagate)
             CVBufferSetAttachment(pixelBuffer, kCVImageBufferColorPrimariesKey,
                                   kCVImageBufferColorPrimaries_P3_D65 as CFString, .shouldPropagate)
             CVBufferSetAttachment(pixelBuffer, kCVImageBufferYCbCrMatrixKey,
                                   kCVImageBufferYCbCrMatrix_ITU_R_709_2 as CFString, .shouldPropagate)
 
-        default: break
+        case .hdr(let transfer):
+            let transferFunction = (transfer == .hlg
+                                    ? kCVImageBufferTransferFunction_ITU_R_2100_HLG
+                                    : kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ)
+            CVBufferSetAttachment(pixelBuffer, kCVImageBufferTransferFunctionKey,
+                                  transferFunction as CFString, .shouldPropagate)
+            CVBufferSetAttachment(pixelBuffer, kCVImageBufferColorPrimariesKey,
+                                  kCVImageBufferColorPrimaries_ITU_R_2020 as CFString, .shouldPropagate)
+            CVBufferSetAttachment(pixelBuffer, kCVImageBufferYCbCrMatrixKey,
+                                  kCVImageBufferYCbCrMatrix_ITU_R_2020 as CFString, .shouldPropagate)
         }
-        // Always set transfer function
-        CVBufferSetAttachment(pixelBuffer, kCVImageBufferTransferFunctionKey,
-                              transferFunction as CFString, .shouldPropagate)
     }
 
     // MARK: - Bitrate Calculation
