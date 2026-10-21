@@ -166,7 +166,37 @@ public enum VideoPreset: MediaPreset {
             ]) { _, new in new }
         }
 
-        guard case .hdr(let transfer) = self, transfer == .pq else { return compressionProps }
+        guard case .hdr(let transfer) = self else { return compressionProps }
+
+        var masteringBytes: [UInt16] = [
+            13250, 34500, // Green Primary x, y
+            7500,  3000,  // Blue Primary x, y
+            34000, 16000, // Red Primary x, y
+            15635, 16450, // White Point x, y
+            0, 0,         // Max Luminance Placeholder (Idx 8, 9)
+            0, 0          // Min Luminance Placeholder (Idx 10, 11)
+        ]
+
+        let maxLuminance: UInt32 = 1000 * 10000
+        let minLuminance: UInt32 = UInt32(0.005 * 10000)
+
+        // Assign to distinct indices so the data wraps correctly
+        masteringBytes[8] = UInt16(maxLuminance & 0xFFFF)
+        masteringBytes[9] = UInt16((maxLuminance >> 16) & 0xFFFF)
+        masteringBytes[10] = UInt16(minLuminance & 0xFFFF)
+        masteringBytes[11] = UInt16((minLuminance >> 16) & 0xFFFF)
+
+        let masteringData = Data(bytes: masteringBytes, count: 24)
+
+        compressionProps = compressionProps.merging([
+            kCVImageBufferContentLightLevelInfoKey as String: [
+                "MaxCLL": 1000,   // Max Content Light Level
+                "MaxFALL": 400    // Max Frame Average Light Level
+            ],
+            kVTCompressionPropertyKey_MasteringDisplayColorVolume as String: masteringData
+        ]) { _, new in new }
+
+        guard transfer == .pq else { return compressionProps }
 
         return compressionProps.merging([
             // Standard 1,000-nit HDR10 mastering metadata
@@ -178,10 +208,6 @@ public enum VideoPreset: MediaPreset {
                 "WhitePoint": [0.3127, 0.3290],
                 "MaxLuminance": 1000.0,
                 "MinLuminance": 0.005
-            ],
-            kCVImageBufferContentLightLevelInfoKey as String: [
-                "MaxCLL": 1000,   // Max Content Light Level
-                "MaxFALL": 400    // Max Frame Average Light Level
             ]
         ]) { _, new in new }
     }
