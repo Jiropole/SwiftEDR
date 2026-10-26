@@ -10,6 +10,8 @@ import SwiftUI
 /// Extracts highlights from the content view, i.e. where luminosity exceeds threshold.
 public struct HighlightsModifier: ViewModifier {
 
+    static let downsampleFactor = 4.0
+
     @Environment(\.edrPalette) private var palette
     @State private var viewRadius: CGFloat = 20
 
@@ -19,13 +21,13 @@ public struct HighlightsModifier: ViewModifier {
             .layerEffect(highlightsShader, maxSampleOffset: .zero)
 
             // Downsample to reduce GPU overhead.
-            .scaleEffect(0.25)
+            .scaleEffect(1.0 / Self.downsampleFactor)
 
             // Blur the downsampled highlights.
-            .blur(radius: palette.profile.bloom.radius * viewRadius / 4.0, opaque: false)
+            .blur(radius: palette.profile.bloom.radius * viewRadius / Self.downsampleFactor, opaque: false)
 
             // Restore original scale
-            .scaleEffect(4.0)
+            .scaleEffect(Self.downsampleFactor)
 
             // Keep viewRadius in sync.
             .onGeometryChange(for: CGSize.self, of: \.size) { viewSize in

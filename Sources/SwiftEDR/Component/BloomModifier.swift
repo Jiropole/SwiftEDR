@@ -18,14 +18,14 @@ public struct BloomModifier: ViewModifier {
             if !palette.profile.options.isBloomSolo {
                 content
             } else {
-                Color.black
+                content.colorMultiply(.black)
             }
 
             if palette.profile.isBloomEnabled {
                 // Extract a highlights layer from the content to be screened on top.
                 content
                     .modifier(HighlightsModifier())
-                    .blendMode(.lighten)
+                    .blendMode(.plusLighter)
             }
         }
     }

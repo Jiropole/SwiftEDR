@@ -27,14 +27,17 @@ public struct EDRModifier: ViewModifier {
         let palette = Palette(profile: profile,
                               headroom: headroomFollower.headroom.headroomForProfile(profile))
         return content
+            // Ensure content opacity is consistent between display or bitmap rendering targets.
+            .drawingGroup(opaque: true, colorMode: profile.renderMode)
+
             // Add any bloom effect.
             .modifier(BloomModifier())
 
-            // Add any tone mapping effect (needs work).
-            .modifier(ToneMapModifier())
-
             // Assert any current request for elevated headroom, which can be disrupted by shaders in the pipeline.
             .modifier(HeadroomAsserter())
+
+            // Ensure content opacity and effects are consistent between display or bitmap rendering targets.
+            .drawingGroup(opaque: true, colorMode: profile.renderMode)
 
             // Adjust requested dynamic range according to mode and options.
             .allowedDynamicRange(profile.dynamicRange)

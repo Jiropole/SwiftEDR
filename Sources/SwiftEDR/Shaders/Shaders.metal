@@ -18,13 +18,13 @@ using namespace metal;
     half4 color = layer.sample(position);
     half3 rgb = color.rgb * premultiplier;
 
-    // Determine perceived luminance using standard P3/sRGB weights
-    half luminance = dot(rgb, half3(0.2126h, 0.7152h, 0.0722h));
+    // Use strongest component to determine emissiveness.
+    half emissiveness = max(rgb.r, max(rgb.g, rgb.b));
 
     // Smoothstep soft knee into full bloom weight
     float lowBound = threshold - kneeWidth;
     float highBound = threshold + kneeWidth;
-    half bloomWeight = half(smoothstep(lowBound, highBound, float(luminance)));
+    half bloomWeight = half(smoothstep(lowBound, highBound, float(emissiveness)));
 
     // Final value is the premultiplied color scaled by bloom weight.
     return half4(rgb * bloomWeight, color.a);
@@ -46,47 +46,4 @@ using namespace metal;
 
     // Final value is the original color scaled by bloom weight.
     return half4(rgb * bloomWeight, color.a);
-}
-
-
-
-
-[[ stitchable ]] half4 defaultToneMap(float2 position,
-                                      SwiftUI::Layer layer,
-                                      float headroom) {
-    half4 color = layer.sample(position);
-
-    // Extract color values above SDR 1.0
-    half3 toneMappableRGB = color.rgb; // max(half3(0.0h), color.rgb - half3(1.0h));
-    // Calculate reinhard inverse scalar for values over 1.0
-    half3 inverseReinhardRGB = half3(1.0) / (toneMappableRGB + half3(1.0h));
-
-    // Define EDR headroom as that above SDR 1.0
-    half edrHeadroom = half(headroom); //- half(1.0h);
-    // Calculate tone mapped values scaled to the EDR headroom
-    half3 toneMappedRGB = toneMappableRGB * inverseReinhardRGB * edrHeadroom;
-    // Final value is SDR value + tone mapped EDR value
-    half3 finalRGB = toneMappedRGB; //min(half3(1.0), color.rgb) + toneMappedRGB;
-
-    return half4(finalRGB, color.a);
-}
-
-[[ stitchable ]] half4 experimentalToneMap(float2 position,
-                                           SwiftUI::Layer layer,
-                                           float headroom) {
-    half4 color = layer.sample(position);
-
-    // Extract color values above SDR 1.0
-    half3 toneMappableRGB = max(half3(0.0h), color.rgb - half3(1.0h));
-    // Calculate reinhard inverse scalar for values over 1.0
-    half3 inverseReinhardRGB = half3(1.0) / (toneMappableRGB + half3(1.0h));
-
-    // Define EDR headroom as that above SDR 1.0
-    half edrHeadroom = half(headroom) - half(1.0h);
-    // Calculate tone mapped values scaled to the EDR headroom
-    half3 toneMappedRGB = toneMappableRGB * inverseReinhardRGB * edrHeadroom;
-    // Final value is SDR value + tone mapped EDR value
-    half3 finalRGB = min(half3(1.0), color.rgb) + toneMappedRGB;
-
-    return half4(finalRGB, color.a);
 }
