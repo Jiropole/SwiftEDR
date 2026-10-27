@@ -51,6 +51,23 @@ extension Palette {
         return colors.map { rgbColor($0, space: space, boost: boost) }
     }
 
+    /// Linear extended-range RGBA (straight alpha) from HSVA `components`, in the profile's color space, for renderers that
+    /// work in linear light, such as Metal. Matches what `hsvColor` shows, including HDR boost for a value component above one.
+    public func linearRGBA(hsv components: [CGFloat], boost: CGFloat = 1.0) -> SIMD4<Float> {
+        let nativeColor = NativeColor(hue: components[0],
+                                      saturation: min(1, components[1]),
+                                      brightness: min(1, components[2]),
+                                      alpha: components[3])
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        nativeColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        var corrected = profileCorrectedComponents([r, g, b, a], boost: boost * max(1, components[2]))
+        // SDR profiles in a gamma color space leave components gamma encoded; everything else is already linear.
+        if profile.mode == .sdr, !profile.options.isLinearColorSpace {
+            corrected = corrected.prefix(3).map { Self.extendedGammaToLinear($0) } + [corrected[3]]
+        }
+        return SIMD4(Float(corrected[0]), Float(corrected[1]), Float(corrected[2]), Float(corrected[3]))
+    }
+
     /// Profile correct alpha value, e.g. for View `.opacity()`. Do not use this for specifying colors.
     public func alpha(_ alpha: CGFloat) -> CGFloat {
         guard !profile.options.isLinearColorSpace, profile.mode != .sdr else { return alpha }

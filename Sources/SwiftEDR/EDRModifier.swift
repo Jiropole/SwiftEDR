@@ -28,7 +28,7 @@ public struct EDRModifier: ViewModifier {
                               headroom: headroomFollower.headroom.headroomForProfile(profile))
         return content
             // Ensure content opacity is consistent between display or bitmap rendering targets.
-            .drawingGroup(opaque: true, colorMode: profile.renderMode)
+            .drawingGroup(opaque: false, colorMode: profile.renderMode)
 
             // Add any bloom effect.
             .modifier(BloomModifier())
@@ -37,7 +37,7 @@ public struct EDRModifier: ViewModifier {
             .modifier(HeadroomAsserter())
 
             // Ensure content opacity and effects are consistent between display or bitmap rendering targets.
-            .drawingGroup(opaque: true, colorMode: profile.renderMode)
+            .drawingGroup(opaque: false, colorMode: profile.renderMode)
 
             // Adjust requested dynamic range according to mode and options.
             .allowedDynamicRange(profile.dynamicRange)
