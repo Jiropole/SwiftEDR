@@ -22,17 +22,23 @@ public struct Profile: BaseModel {
     /// Flags that control special rendering behaviors.
     public var options: Options
 
+    /// How quickly brightness beyond standard white drains to white when it is tone mapped into the standard range (EDR). Zero keeps the hue and
+    /// saturation of any brightness; larger values whiten faster. Nil uses the renderer's default. A missing value in saved data reads as nil.
+    public var highlightBurn: CGFloat?
+
     /// Initialize an EDR Profile.
     /// - Parameters:
     ///   - mode: Determines color space, bit depth, and dynamic range behaviors.
     ///   - bloom: Controls bloom effect.
     ///   - maxHeadroom: Limits the maximum current and potential headroom reported to the application. Default: 1024.
     ///   - options: Controls special rendering options.
-    public init(mode: Mode, bloom: Bloom = .none, maxHeadroom: CGFloat = 1024.0, options: Options = []) {
+    ///   - highlightBurn: How quickly overbright light whitens when tone mapped. Default: the renderer's.
+    public init(mode: Mode, bloom: Bloom = .none, maxHeadroom: CGFloat = 1024.0, options: Options = [], highlightBurn: CGFloat? = nil) {
         self.mode = mode
         self.bloom = bloom
         self.maxHeadroom = maxHeadroom
         self.options = options
+        self.highlightBurn = highlightBurn
     }
 }
 
@@ -79,7 +85,8 @@ extension Profile {
         Profile(mode: mode ?? self.mode,
                 bloom: bloom ?? self.bloom,
                 maxHeadroom: maxHeadroom ?? self.maxHeadroom,
-                options: options ?? self.options)
+                options: options ?? self.options,
+                highlightBurn: highlightBurn)
     }
 }
 
