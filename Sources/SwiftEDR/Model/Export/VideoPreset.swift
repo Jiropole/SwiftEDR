@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import simd
 import VideoToolbox
 
 public enum VideoPreset: MediaPreset {
@@ -33,9 +34,10 @@ public enum VideoPreset: MediaPreset {
                                                           keyframeInterval: keyframeInterval)
         switch self {
         case .sdr8Bit:
+            // BGRA in memory, which is what Metal renders 8-bit color as.
             return .init(bitmapInfo: (CGImageAlphaInfo.premultipliedFirst.rawValue |
-                                      CGImageByteOrderInfo.order32Big.rawValue),
-                         pixelFormat: kCVPixelFormatType_32ARGB,
+                                      CGImageByteOrderInfo.order32Little.rawValue),
+                         pixelFormat: kCVPixelFormatType_32BGRA,
                          bitsPerComponent: 8,
                          adapterProperties: avProperties,
                          colorSpace: colorSpace)
@@ -318,6 +320,58 @@ extension VideoPreset {
             case .pq:
                 return CGColorSpace(name: CGColorSpace.itur_2100_PQ)!
             }
+        }
+
+        /// Nits that a linear value of 1.0 (SDR white) is shown at: ITU-R BT.2408 reference white. HLG encodes it as a signal of 0.75.
+        public static let referenceWhiteNits: Float = 203
+        /// Peak of the display that HLG's system gamma assumes (BT.2100: 1.2 at 1000 nits).
+        public static let hlgDisplayPeakNits: Float = 1000
+        public static let hlgSystemGamma: Float = 1.2
+        /// What a PQ signal of 1.0 stands for.
+        public static let pqPeakNits: Float = 10000
+
+        /// Linear Display P3 to linear Rec. 2020 (both D65), by rows.
+        public static let displayP3ToRec2020: [SIMD3<Float>] = [
+            SIMD3(0.753833, 0.198597, 0.047570),
+            SIMD3(0.045744, 0.941777, 0.012479),
+            SIMD3(-0.001210, 0.017602, 0.983609)
+        ]
+
+        /// The signal for a linear extended Display P3 color, where 1.0 is SDR white: the color is converted to Rec. 2020 and encoded for
+        /// this transfer, display-referred, the same way a Metal shader should. Values below zero (outside Rec. 2020) become zero.
+        ///
+        /// PQ scales to absolute nits and applies the inverse EOTF. HLG applies BT.2100's inverse OOTF (system gamma on luminance, scaled
+        /// to a 1000 nit display) and then the OETF, so neutrals land where CoreGraphics puts them. CoreGraphics' own HLG conversion
+        /// departs from this for saturated colors by a few percent of the signal (up to about 0.05 for dark blues), in ways that fit no
+        /// standard luminance weighting; PQ matches it to half-float precision.
+        public func encode(_ linearDisplayP3: SIMD3<Float>) -> SIMD3<Float> {
+            let source = simd_max(linearDisplayP3, .zero)
+            let rec2020 = simd_max(SIMD3(simd_dot(Self.displayP3ToRec2020[0], source),
+                                         simd_dot(Self.displayP3ToRec2020[1], source),
+                                         simd_dot(Self.displayP3ToRec2020[2], source)), .zero)
+            switch self {
+            case .pq:
+                let normalized = rec2020 * Self.referenceWhiteNits / Self.pqPeakNits
+                return simd_clamp(SIMD3(Self.pqSignal(normalized.x), Self.pqSignal(normalized.y), Self.pqSignal(normalized.z)), .zero, .one)
+            case .hlg:
+                let display = rec2020 * Self.referenceWhiteNits / Self.hlgDisplayPeakNits
+                let luminance = simd_dot(display, SIMD3(0.2627, 0.6780, 0.0593))
+                guard luminance > 1e-9 else { return .zero }
+                let scene = display * powf(luminance, -(Self.hlgSystemGamma - 1) / Self.hlgSystemGamma)
+                return simd_clamp(SIMD3(Self.hlgSignal(scene.x), Self.hlgSignal(scene.y), Self.hlgSignal(scene.z)), .zero, .one)
+            }
+        }
+
+        private static func pqSignal(_ y: Float) -> Float {
+            let m1: Float = 2610 / 16384, m2: Float = 2523 / 4096 * 128
+            let c1: Float = 3424 / 4096, c2: Float = 2413 / 4096 * 32, c3: Float = 2392 / 4096 * 32
+            let p = powf(y, m1)
+            return powf((c1 + c2 * p) / (1 + c3 * p), m2)
+        }
+
+        private static func hlgSignal(_ e: Float) -> Float {
+            let a: Float = 0.17883277, b: Float = 0.28466892, c: Float = 0.55991073
+            return e <= 1 / 12 ? sqrtf(3 * e) : a * logf(12 * e - b) + c
         }
     }
 
