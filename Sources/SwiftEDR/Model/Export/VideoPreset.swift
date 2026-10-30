@@ -166,50 +166,42 @@ public enum VideoPreset: MediaPreset {
             ]) { _, new in new }
         }
 
-        guard case .hdr(let transfer) = self else { return compressionProps }
+        guard case .hdr = self else { return compressionProps }
 
-        var masteringBytes: [UInt16] = [
-            13250, 34500, // Green Primary x, y
-            7500,  3000,  // Blue Primary x, y
-            34000, 16000, // Red Primary x, y
-            15635, 16450, // White Point x, y
-            0, 0,         // Max Luminance Placeholder (Idx 8, 9)
-            0, 0          // Min Luminance Placeholder (Idx 10, 11)
-        ]
-
-        let maxLuminance: UInt32 = 1000 * 10000
-        let minLuminance: UInt32 = UInt32(0.005 * 10000)
-
-        // Assign to distinct indices so the data wraps correctly
-        masteringBytes[8] = UInt16(maxLuminance & 0xFFFF)
-        masteringBytes[9] = UInt16((maxLuminance >> 16) & 0xFFFF)
-        masteringBytes[10] = UInt16(minLuminance & 0xFFFF)
-        masteringBytes[11] = UInt16((minLuminance >> 16) & 0xFFFF)
-
-        let masteringData = Data(bytes: masteringBytes, count: 24)
-
-        compressionProps = compressionProps.merging([
-            kCVImageBufferContentLightLevelInfoKey as String: [
-                "MaxCLL": 1000,   // Max Content Light Level
-                "MaxFALL": 400    // Max Frame Average Light Level
-            ],
-            kVTCompressionPropertyKey_MasteringDisplayColorVolume as String: masteringData
-        ]) { _, new in new }
-
-        guard transfer == .pq else { return compressionProps }
-
+        // Static HDR metadata. VideoToolbox takes these as the raw big-endian SEI payloads, not as dictionaries.
         return compressionProps.merging([
-            // Standard 1,000-nit HDR10 mastering metadata
-            // using literal string keys for SMPTE ST 2086 mastering display metrics.
-            kCVImageBufferMasteringDisplayColorVolumeKey as String: [
-                "RedPrimaries": [0.680, 0.320],
-                "GreenPrimaries": [0.265, 0.690],
-                "BluePrimaries": [0.150, 0.060],
-                "WhitePoint": [0.3127, 0.3290],
-                "MaxLuminance": 1000.0,
-                "MinLuminance": 0.005
-            ]
+            kVTCompressionPropertyKey_MasteringDisplayColorVolume as String: Self.masteringDisplayColorVolumeData(),
+            kVTCompressionPropertyKey_ContentLightLevelInfo as String: Self.contentLightLevelInfoData(maxCLL: 1000, maxFALL: 400)
         ]) { _, new in new }
+    }
+
+    // MARK: - HDR Metadata
+
+    /// The mastering display colour volume SEI payload (ISO/IEC 23008-2 D.2.28): 24 big-endian bytes, as taken by
+    /// `kVTCompressionPropertyKey_MasteringDisplayColorVolume` and `kCVImageBufferMasteringDisplayColorVolumeKey`.
+    /// Describes a Display P3 (D65) display.
+    /// - Parameters:
+    ///   - maxLuminance: Peak luminance of the mastering display, in nits.
+    ///   - minLuminance: Black level of the mastering display, in nits.
+    public static func masteringDisplayColorVolumeData(maxLuminance: Double = 1000, minLuminance: Double = 0.005) -> Data {
+        var data = Data()
+        // Chromaticity coordinates in units of 0.00002, in the order green, blue, red, then white point.
+        for coordinate in [0.265, 0.690, 0.150, 0.060, 0.680, 0.320, 0.3127, 0.3290] {
+            data.appendBigEndian(UInt16((coordinate / 0.00002).rounded()))
+        }
+        // Luminance in units of 0.0001 nits.
+        data.appendBigEndian(UInt32((maxLuminance / 0.0001).rounded()))
+        data.appendBigEndian(UInt32((minLuminance / 0.0001).rounded()))
+        return data
+    }
+
+    /// The content light level info SEI payload: 4 big-endian bytes, as taken by `kVTCompressionPropertyKey_ContentLightLevelInfo`
+    /// and `kCVImageBufferContentLightLevelInfoKey`. Values are in nits.
+    public static func contentLightLevelInfoData(maxCLL: Int, maxFALL: Int) -> Data {
+        var data = Data()
+        data.appendBigEndian(UInt16(clamping: maxCLL))
+        data.appendBigEndian(UInt16(clamping: maxFALL))
+        return data
     }
 
     // MARK: - Pixel Buffer Tagging
@@ -336,5 +328,11 @@ extension VideoPreset {
         public var bitsPerComponent: Int
         public var adapterProperties: [String: Any]
         public var colorSpace: CGColorSpace
+    }
+}
+
+private extension Data {
+    mutating func appendBigEndian<T: FixedWidthInteger>(_ value: T) {
+        Swift.withUnsafeBytes(of: value.bigEndian) { append(contentsOf: $0) }
     }
 }
