@@ -33,6 +33,9 @@ public struct EDRModifier: ViewModifier {
             // Add any bloom effect.
             .modifier(BloomModifier())
 
+            // Compress what the display can't show, if the profile asks for it.
+            .modifier(ToneMapModifier())
+
             // Assert any current request for elevated headroom, which can be disrupted by shaders in the pipeline.
             .modifier(HeadroomAsserter())
 
