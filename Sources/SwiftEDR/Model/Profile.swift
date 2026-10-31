@@ -171,8 +171,9 @@ extension Profile {
         /// Disables bloom effect entirely.
         public static let bloomMute = Self(rawValue: 1 << 3)
 
-        /// If set, tone maps the content into the range the display can show (see `ToneMap`), so overbright colors keep their hue on a display
-        /// without the headroom for them. Leave it off for a renderer that does its own tone mapping.
+        /// If set, tone maps SwiftUI content into the standard range (see `ToneMap`), so overbright colors keep their hue instead of being clipped
+        /// toward white. On in the EDR defaults, as EDR means extended math shown in the standard range; in HDR only a display without headroom
+        /// is mapped. Has no effect on a renderer that does its own tone mapping, such as the app's Metal renderer.
         public static let toneMapDefault = Self(rawValue: 1 << 4)
 
         public var isLinearColorSpace: Bool {
@@ -203,11 +204,11 @@ extension Profile {
 
     public struct Defaults {
         public static let sdr = Profile(mode: .sdr, bloom: .none)
-        public static let edr = Profile(mode: .edr, bloom: .none)
+        public static let edr = Profile(mode: .edr, bloom: .none, options: .toneMapDefault)
         public static let hdr = Profile(mode: .hdr, bloom: .none)
 
         public static let sdrBloom = Profile(mode: .sdr, bloom: .sdr)
-        public static let edrBloom = Profile(mode: .edr, bloom: .edr)
+        public static let edrBloom = Profile(mode: .edr, bloom: .edr, options: .toneMapDefault)
         public static let hdrBloom = Profile(mode: .hdr, bloom: .hdr)
     }
 }
