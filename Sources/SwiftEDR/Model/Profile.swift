@@ -171,7 +171,8 @@ extension Profile {
         /// Disables bloom effect entirely.
         public static let bloomMute = Self(rawValue: 1 << 3)
 
-        /// If set, enables default tone mapping. Experimental, not all that useful at the moment.
+        /// If set, tone maps the content into the range the display can show (see `ToneMap`), so overbright colors keep their hue on a display
+        /// without the headroom for them. Leave it off for a renderer that does its own tone mapping.
         public static let toneMapDefault = Self(rawValue: 1 << 4)
 
         public var isLinearColorSpace: Bool {
