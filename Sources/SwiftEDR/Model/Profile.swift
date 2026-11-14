@@ -17,7 +17,15 @@ public struct Profile: BaseModel {
     public var bloom: Bloom
 
     /// Constrains the maximum requested headroom. This is reflected in both current and potential headroom reported to the app.
-    public var maxHeadroom: CGFloat
+    /// It never exceeds the ceiling of `hdrTransfer`, which is also its default.
+    public var maxHeadroom: CGFloat {
+        didSet { maxHeadroom = Self.clamped(maxHeadroom, for: hdrTransfer) }
+    }
+
+    /// The transfer function HDR output is encoded with. It sets the range `maxHeadroom` can take: changing it clamps `maxHeadroom` to the new range.
+    public var hdrTransfer: VideoPreset.HDRTransfer {
+        didSet { maxHeadroom = Self.clamped(maxHeadroom, for: hdrTransfer) }
+    }
 
     /// Flags that control special rendering behaviors.
     public var options: Options
@@ -30,15 +38,40 @@ public struct Profile: BaseModel {
     /// - Parameters:
     ///   - mode: Determines color space, bit depth, and dynamic range behaviors.
     ///   - bloom: Controls bloom effect.
-    ///   - maxHeadroom: Limits the maximum current and potential headroom reported to the application. Default: 1024.
+    ///   - maxHeadroom: Limits the maximum current and potential headroom reported to the application. Default: the ceiling of `hdrTransfer`.
+    ///   - hdrTransfer: The transfer function HDR output is encoded with. Default: HLG.
     ///   - options: Controls special rendering options.
     ///   - highlightBurn: How quickly overbright light whitens when tone mapped. Default: the renderer's.
-    public init(mode: Mode, bloom: Bloom = .none, maxHeadroom: CGFloat = 1024.0, options: Options = [], highlightBurn: CGFloat? = nil) {
+    public init(mode: Mode, bloom: Bloom = .none, maxHeadroom: CGFloat = .infinity, hdrTransfer: VideoPreset.HDRTransfer = .hlg,
+                options: Options = [], highlightBurn: CGFloat? = nil) {
         self.mode = mode
         self.bloom = bloom
-        self.maxHeadroom = maxHeadroom
+        self.hdrTransfer = hdrTransfer
+        self.maxHeadroom = Self.clamped(maxHeadroom, for: hdrTransfer)
         self.options = options
         self.highlightBurn = highlightBurn
+    }
+
+    /// `headroom` within the range the transfer allows: from standard white (1) up to the transfer's ceiling.
+    public static func clamped(_ headroom: CGFloat, for transfer: VideoPreset.HDRTransfer) -> CGFloat {
+        min(max(headroom, 1), transfer.headroomCeiling)
+    }
+}
+
+// A profile saved before the transfer existed reads as HLG; its headroom, which had no ceiling, is clamped to HLG's.
+extension Profile {
+    enum CodingKeys: String, CodingKey {
+        case mode, bloom, maxHeadroom, hdrTransfer, options, highlightBurn
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(mode: try container.decode(Mode.self, forKey: .mode),
+                  bloom: try container.decode(Bloom.self, forKey: .bloom),
+                  maxHeadroom: try container.decode(CGFloat.self, forKey: .maxHeadroom),
+                  hdrTransfer: try container.decodeIfPresent(VideoPreset.HDRTransfer.self, forKey: .hdrTransfer) ?? .hlg,
+                  options: try container.decode(Options.self, forKey: .options),
+                  highlightBurn: try container.decodeIfPresent(CGFloat.self, forKey: .highlightBurn))
     }
 }
 
@@ -81,10 +114,12 @@ extension Profile {
     }
 
     /// A convenience function to get a modified (often simplified) version of the profile.
-    public func replacing(mode: Mode? = nil, bloom: Bloom? = nil, maxHeadroom: CGFloat? = nil, options: Options? = nil) -> Profile {
+    public func replacing(mode: Mode? = nil, bloom: Bloom? = nil, maxHeadroom: CGFloat? = nil, hdrTransfer: VideoPreset.HDRTransfer? = nil,
+                          options: Options? = nil) -> Profile {
         Profile(mode: mode ?? self.mode,
                 bloom: bloom ?? self.bloom,
                 maxHeadroom: maxHeadroom ?? self.maxHeadroom,
+                hdrTransfer: hdrTransfer ?? self.hdrTransfer,
                 options: options ?? self.options,
                 highlightBurn: highlightBurn)
     }
