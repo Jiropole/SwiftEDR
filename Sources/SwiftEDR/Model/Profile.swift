@@ -114,11 +114,12 @@ extension Profile {
     }
 
     /// A convenience function to get a modified (often simplified) version of the profile.
-    public func replacing(mode: Mode? = nil, bloom: Bloom? = nil, maxHeadroom: CGFloat? = nil, options: Options? = nil) -> Profile {
+    public func replacing(mode: Mode? = nil, bloom: Bloom? = nil, maxHeadroom: CGFloat? = nil, hdrTransfer: VideoPreset.HDRTransfer? = nil,
+                          options: Options? = nil) -> Profile {
         Profile(mode: mode ?? self.mode,
                 bloom: bloom ?? self.bloom,
                 maxHeadroom: maxHeadroom ?? self.maxHeadroom,
-                hdrTransfer: hdrTransfer,
+                hdrTransfer: hdrTransfer ?? self.hdrTransfer,
                 options: options ?? self.options,
                 highlightBurn: highlightBurn)
     }
