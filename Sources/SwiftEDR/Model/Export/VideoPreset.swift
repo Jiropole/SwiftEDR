@@ -322,6 +322,19 @@ extension VideoPreset {
             }
         }
 
+        /// What PQ content is mastered to in practice, in nits: well under the signal's 10000 nit peak, which no display reaches.
+        public static let pqMasteringPeakNits: Float = 4000
+
+        /// The most headroom (multiples of SDR white) that art for this transfer can hold: HLG's display peak, or PQ's mastering peak, over reference white.
+        public var headroomCeiling: CGFloat {
+            switch self {
+            case .hlg:
+                return CGFloat(Self.hlgDisplayPeakNits / Self.referenceWhiteNits)
+            case .pq:
+                return CGFloat(Self.pqMasteringPeakNits / Self.referenceWhiteNits)
+            }
+        }
+
         /// Nits that a linear value of 1.0 (SDR white) is shown at: ITU-R BT.2408 reference white. HLG encodes it as a signal of 0.75.
         public static let referenceWhiteNits: Float = 203
         /// Peak of the display that HLG's system gamma assumes (BT.2100: 1.2 at 1000 nits).
