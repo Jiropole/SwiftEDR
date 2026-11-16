@@ -3,7 +3,7 @@
 
 A clean, convenient and performant mini-framework to bring EDR (extended dynamic range) and HDR (high dynamic range) display to any SwiftUI view.
 
-SwiftEDR is entirely hand coded in SwiftUI and MSL. AI fulfilled a limited role around topic research and comprehension.
+SwiftEDR is mostly hand coded in SwiftUI and Metal, although Claude has contributed to some of the detail work.
 
 ## Platform Support
 * iOS: Full support for iOS 26+, but high dynamic range not available on simulators.
