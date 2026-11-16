@@ -50,20 +50,25 @@ using namespace metal;
 
 // MARK: Tone mapping
 
-/// GPU twin of `ToneMap.apply(to:ceiling:)` in ToneMap.swift; keep the two in step. Compresses a color's brightest channel into `ceiling` (the
-/// display's brightest component value) and scales every channel by the same factor, after pulling the color toward white by `burn` for light
-/// brighter than the ceiling.
+/// One component compressed: unchanged up to the knee, then a rational curve that reaches `ceiling` at `peak` (see `ToneMap`).
+static float toneShoulder(float v, float kneeLevel, float peak, float ceiling) {
+    if (v <= kneeLevel) return v;
+    float t = saturate((v - kneeLevel) / (peak - kneeLevel));
+    float k = (ceiling - kneeLevel) / (peak - ceiling);
+    return kneeLevel + (ceiling - kneeLevel) * t * (1.0 + k) / (t + k);
+}
+
+/// GPU twin of `ToneMap.apply(to:ceiling:)` in ToneMap.swift; keep the two in step. Blends, by `burn`, the compression that scales all channels by the brightest's
+/// factor (hue kept) and the one that compresses each channel on its own (as a clip would).
 static float3 toneMapColor(float3 c, float knee, float peak, float burn, float ceiling) {
     c = max(c, 0.0);
     if (ceiling >= peak) return c;
     float kneeLevel = knee * ceiling;
     float m = max(c.r, max(c.g, c.b));
     if (m <= kneeLevel) return c;
-    c = mix(c, float3(m), 1.0 - exp(-burn * max(m - ceiling, 0.0)));
-    float t = saturate((m - kneeLevel) / (peak - kneeLevel));
-    float k = (ceiling - kneeLevel) / (peak - ceiling);
-    float mapped = kneeLevel + (ceiling - kneeLevel) * t * (1.0 + k) / (t + k);
-    return c * (mapped / m);
+    float3 hueKept = c * (toneShoulder(m, kneeLevel, peak, ceiling) / m);
+    float3 perChannel = float3(toneShoulder(c.r, kneeLevel, peak, ceiling), toneShoulder(c.g, kneeLevel, peak, ceiling), toneShoulder(c.b, kneeLevel, peak, ceiling));
+    return mix(hueKept, perChannel, saturate(burn));
 }
 
 /// Tone maps the layer's extended-range color. SwiftUI hands layers over premultiplied, so the color is unpremultiplied first and the curve acts
